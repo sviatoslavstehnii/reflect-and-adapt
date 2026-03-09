@@ -1,0 +1,8 @@
+{
+  "id": "reflect-and-adapt",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

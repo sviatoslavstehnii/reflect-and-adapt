@@ -1,0 +1,9 @@
+.env
+cortex_runs/
+node_modules/
+PROPOSALS.json
+logs.jsonl
+scores.jsonl
+state.json
+reflect.db*
+memory.lance/

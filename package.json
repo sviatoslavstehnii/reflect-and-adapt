@@ -1,0 +1,24 @@
+{
+  "name": "reflect-and-adapt",
+  "version": "0.2.0",
+  "description": "Logs session messages and runs native JS Cortex agent for adaptations",
+  "main": "index.js",
+  "dependencies": {
+    "@lancedb/lancedb": "^0.26.2",
+    "@langchain/core": "^1.1.31",
+    "@langchain/google-genai": "^2.1.24",
+    "@langchain/langgraph": "^0.2.46",
+    "@langchain/openai": "^1.2.12",
+    "apache-arrow": "^21.1.0",
+    "better-sqlite3": "^12.6.2",
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8"
+  },
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "observer"
+  ],
+  "author": "Sovereign",
+  "license": "MIT"
+}
