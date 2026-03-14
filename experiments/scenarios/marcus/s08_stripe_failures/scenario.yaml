@@ -1,0 +1,25 @@
+id: s08_stripe_failures
+persona: marcus
+name: "Stripe Payment Failures Investigation"
+
+opening_prompt: |
+  Getting reports from customers that their credit cards are being declined — but they say their
+  cards are totally fine. Started happening yesterday. I exported the recent failure events from
+  Stripe, they're in the data folder. Andrei is on vacation until Monday. Help me understand
+  what's going on and what I should do right now.
+
+workspace_files:
+  - stripe_events.json
+
+signals_to_express:
+  - If agent explains webhook debugging or idempotency: "Andrei handles the code — I need to understand the problem in plain English"
+  - If agent uses terms like "SCA", "3DS", "idempotency key": ask what those mean
+  - If agent suggests checking Stripe Radar rules (doable in dashboard): engage positively
+  - Ask "what do I write to customers who are emailing me right now?"
+  - Ask "what do I tell Andrei when he's back on Monday? can you write that up for me?"
+  - If agent identifies do_not_honor + annual renewals + March as likely 3DS / bank-side issue: react with relief
+
+what_agent_should_learn:
+  - Stripe code issues go to Andrei — Marcus needs to understand problems, not fix code
+  - Marcus needs two outputs: customer-facing message now, and technical brief for Andrei later
+  - Plain English explanations required for any payment/banking concept

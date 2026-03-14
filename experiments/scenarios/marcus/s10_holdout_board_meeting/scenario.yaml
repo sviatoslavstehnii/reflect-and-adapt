@@ -1,0 +1,40 @@
+id: s10_holdout_board_meeting
+persona: marcus
+name: "Board Meeting Preparation — HOLDOUT"
+
+# ── HOLDOUT SCENARIO ──────────────────────────────────────────────────────────
+# This scenario is run identically in BOTH control and treatment arms.
+# No workspace files are provided — the agent must rely entirely on what
+# it has learned about Marcus across previous sessions (treatment arm)
+# or start from scratch (control arm).
+#
+# Expected gap:
+#   Control:   agent asks basic questions — "what does your company do?",
+#              "what metrics do you track?", gives generic board deck template
+#   Treatment: agent already knows Teamflow, references MRR/churn/NPS from
+#              prior sessions, skips to useful structure in Marcus's bullet style
+# ─────────────────────────────────────────────────────────────────────────────
+
+opening_prompt: |
+  I have a board meeting in two weeks. I need to put together a slide deck overview of
+  where the company is. Can you help me figure out what to cover and how to structure it?
+
+workspace_files: []
+
+signals_to_express:
+  - Express frustration if agent asks basic context questions it should already know
+    ("what does your company do?", "what industry are you in?", "what metrics do you track?")
+  - Express satisfaction if agent jumps straight to a useful structure using Teamflow context
+  - Correct format if agent writes long paragraphs — remind it you want a slide-by-slide outline
+  - Ask "what's the most important thing my investors will want to see?"
+  - Ask for a slide-by-slide structure with one-line bullet per slide — not a narrative
+
+evaluation_notes: |
+  This is the primary measurement point for the experiment.
+  Score the helpfulness delta between arms.
+  Key signals to look for in treatment arm response:
+    - Agent references "Teamflow" without being told
+    - Agent mentions MRR, churn, NPS without Marcus providing them
+    - Agent uses bullet/numbered format without being asked
+    - Agent doesn't ask what industry or company stage Marcus is at
+    - Agent references investors from Series A context

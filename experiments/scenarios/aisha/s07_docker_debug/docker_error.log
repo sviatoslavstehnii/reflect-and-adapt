@@ -1,0 +1,9 @@
+$ docker run -p 5000:5000 teamflow-app
+
+$ echo $?
+0
+
+# Container exited with code 0 immediately — no output, no errors shown
+# When checking logs:
+$ docker logs <container_id>
+(empty)

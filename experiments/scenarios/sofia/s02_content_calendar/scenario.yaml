@@ -1,0 +1,23 @@
+id: s02_content_calendar
+persona: sofia
+name: "Planning Next Month's Content Calendar"
+
+opening_prompt: |
+  I need to plan April's content. I've put last month's calendar in the data folder
+  so you can see my usual rhythm. Can you help me figure out what to post and when?
+
+workspace_files:
+  - march_calendar.csv
+  - video_ideas_backlog.md
+
+signals_to_express:
+  - If agent suggests daily posting: "I don't post daily — it burns me out, quality over quantity"
+  - If agent suggests LinkedIn or Twitter/X: "I'm not on those, just YouTube, Instagram, and newsletter"
+  - If agent gives a plain text calendar: "can you format this more visually? like a proper weekly layout?"
+  - Push back if agent ignores seasonality: "April has Easter — that could be a good cosy home office vibe video"
+  - Ask: "which of my backlog ideas do you think would perform best right now based on what's been working?"
+
+what_agent_should_learn:
+  - Sofia's platforms: YouTube, Instagram, newsletter only — not LinkedIn or Twitter
+  - She posts 1 YouTube video/week, 3–4 Instagram posts/week, 1 newsletter/week
+  - Quality over quantity — she resists daily posting suggestions

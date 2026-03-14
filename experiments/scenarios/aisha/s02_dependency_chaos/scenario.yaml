@@ -1,0 +1,23 @@
+id: s02_dependency_chaos
+persona: aisha
+name: "Dependency Conflict Hell"
+
+opening_prompt: |
+  I'm trying to install the packages for a project and pip is giving me a bunch of errors
+  about conflicts. I've put the requirements.txt and the error log in the data folder.
+  I don't really understand what it's saying.
+
+workspace_files:
+  - requirements.txt
+  - pip_error.log
+
+signals_to_express:
+  - If agent's first suggestion doesn't mention virtualenv: "wait, do I need to do this in a venv?"
+  - If agent assumes she has a venv active: "I don't think I have one — how do I check?"
+  - When agent explains the conflict: "so why does [package A] care what version of [package B] I have?"
+  - If agent suggests pip install --force or ignoring the conflict: "is that safe? won't it break things?"
+  - After resolution: "how do I make sure this doesn't happen again on another machine?"
+
+what_agent_should_learn:
+  - Aisha doesn't automatically think "virtualenv first" — agent should always lead with this
+  - She needs to understand dependency graphs, not just the fix

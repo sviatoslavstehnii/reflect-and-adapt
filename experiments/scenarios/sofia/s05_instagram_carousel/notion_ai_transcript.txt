@@ -1,0 +1,41 @@
+okay so I've been using Notion AI every single day for three months now and I genuinely have
+mixed feelings. Like, I wanted to love it. I really did. And some of it I do love. But some
+of it is just... not what I expected? So let me just be really honest with you about all of it.
+
+First — the thing I use most. Every single morning I open Notion and I use the AI to help me
+draft my content brief for whatever I'm filming that week. And it's actually really good at this.
+I give it like a rough idea, a few bullet points of what I want to cover, and it fills in the
+gaps, suggests a structure, sometimes catches things I forgot to include. That part? Ten out of
+ten. It's saved me probably an hour a week just on planning.
+
+The second thing — and this is where it gets a bit complicated — is the writing assistant.
+So you can highlight any text in Notion and ask it to improve it, summarise it, make it longer,
+shorter, change the tone. And honestly this is hit or miss. When I ask it to make something
+more casual it usually nails it. But when I ask it to be more professional? It goes full
+corporate robot mode. Like, suddenly I'm "leveraging synergies" and I'm like... that's not
+a human. So you have to be really specific about what you want.
+
+The third thing I've started using it for is organising my video ideas backlog. I have like
+sixty ideas in there and I asked Notion AI to group them by theme and priority and it did
+a genuinely good job. Took it about ten seconds. Would have taken me twenty minutes manually.
+So for organisation tasks? Really solid.
+
+Now the stuff that disappointed me. The Q&A feature — where you can ask Notion questions about
+your own workspace — is supposed to be this incredible thing. And in theory it's amazing. But
+in practice? It's kind of slow. And it sometimes pulls from the wrong page. Like I asked it
+about my filming schedule and it gave me information from a page I archived months ago. So
+I wouldn't rely on it for anything important yet.
+
+The other thing is the AI database features — like the AI autofill columns — those are still
+pretty rough. They look impressive in demos but in real use they're inconsistent. I tried using
+it to auto-tag my video ideas by topic and it got maybe 60% of them right. Not bad, but not
+good enough to trust blindly.
+
+So is it worth the extra cost? If you're already a heavy Notion user — yes, probably. If you're
+only using Notion casually, maybe wait. For me it's become part of my actual workflow which
+means I'll keep paying for it. But I went in expecting magic and what I got was more like a
+really useful assistant who's great at some things and a bit unreliable at others. Which is
+kind of just... AI in 2026, honestly.
+
+Anyway that's my take after three months. Let me know in the comments if you use Notion AI
+and whether you're getting more out of it than I am — genuinely curious.

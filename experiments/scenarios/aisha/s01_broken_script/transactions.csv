@@ -1,0 +1,13 @@
+id,date,amount,merchant,tx_category,category
+1001,2026-03-01,42.50,Tesco,groceries,groceries
+1002,2026-03-02,12.99,Spotify,subscription,subscription
+1003,2026-03-03,850.00,Ryanair,travel,travel
+1004,2026-03-04,6.80,Costa Coffee,food,food
+1005,2026-03-05,299.00,Apple Store,electronics,electronics
+1006,2026-03-06,33.20,Deliveroo,food,food
+1007,2026-03-07,1200.00,HMRC,tax,
+1008,2026-03-08,15.40,Netflix,subscription,subscription
+1009,2026-03-09,78.60,Boots,health,health
+1010,2026-03-10,540.00,EasyJet,travel,travel
+1011,2026-03-11,22.10,Pret,food,food
+1012,2026-03-12,45.00,Gym membership,health,health

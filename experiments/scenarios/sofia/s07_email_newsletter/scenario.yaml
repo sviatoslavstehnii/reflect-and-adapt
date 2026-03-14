@@ -1,0 +1,24 @@
+id: s07_email_newsletter
+persona: sofia
+name: "Writing the Weekly Newsletter"
+
+opening_prompt: |
+  I need to write this week's newsletter. I've put my previous newsletter and a
+  brief of what happened this week in the data folder. Can you draft it for me?
+
+workspace_files:
+  - previous_newsletter.md
+  - this_week_brief.md
+
+signals_to_express:
+  - If the draft sounds like a marketing email: "this feels like a brand newsletter, not something I'd write — too polished"
+  - If agent adds a formal subject line suggestion: "my subject lines are always casual and a bit mysterious — not descriptive"
+  - If agent writes long paragraphs: "my readers like short, punchy sections — I write like I talk"
+  - Ask: "can you suggest three subject line options? I always struggle with these"
+  - After draft: "the opening feels flat — can you rewrite it so it pulls them in immediately?"
+  - Ask: "should I add a PS? I feel like PPS always get read"
+
+what_agent_should_learn:
+  - Newsletter tone is casual and personal — like texting a friend, not email marketing
+  - Subject lines: intriguing and short, never descriptive
+  - PS/PPS are part of Sofia's format — she uses them for side notes and CTAs

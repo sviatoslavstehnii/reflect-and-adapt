@@ -1,0 +1,13 @@
+order_id,customer_id,order_date,amount,status,included_in_revenue
+O2001,C007,2026-02-03,890.00,returned,no
+O2002,C003,2026-02-05,210.00,completed,yes
+O2003,C008,2026-02-07,320.00,returned,no
+O2004,C001,2026-02-09,45.00,completed,yes
+O2005,C012,2026-02-11,430.00,completed,yes
+O2006,C005,2026-02-13,55.00,returned,no
+O2007,C007,2026-02-15,1100.00,completed,yes
+O2008,C003,2026-02-17,88.00,completed,yes
+O2009,C010,2026-02-18,44.00,completed,yes
+O2010,C008,2026-02-21,265.00,completed,yes
+O2011,C001,2026-02-24,78.00,completed,yes
+O2012,C012,2026-02-27,195.00,completed,yes

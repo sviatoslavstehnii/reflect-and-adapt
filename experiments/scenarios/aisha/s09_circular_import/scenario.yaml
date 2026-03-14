@@ -1,0 +1,24 @@
+id: s09_circular_import
+persona: aisha
+name: "ImportError: Cannot Import Name"
+
+opening_prompt: |
+  My app was working and then I refactored it into multiple files and now I get
+  "ImportError: cannot import name 'User' from partially initialized module".
+  The code is in the data folder.
+
+workspace_files:
+  - models.py
+  - auth.py
+  - main.py
+
+signals_to_express:
+  - Ask "what does 'partially initialized module' actually mean?"
+  - When agent explains circular imports: "so which file is the problem — models or auth?"
+  - Ask "why did this work when it was all in one file?"
+  - When agent suggests the fix: "is there a way to restructure this properly, not just a workaround?"
+  - Ask "how do I avoid this in the future? like is there a rule I should follow?"
+
+what_agent_should_learn:
+  - Aisha is learning to structure multi-file Python projects — architecture concepts matter
+  - She distinguishes "workaround" from "proper fix" — always give her both and label them

@@ -1,0 +1,30 @@
+id: s10_holdout_code_review
+persona: aisha
+name: "Code Review — HOLDOUT"
+
+# ── HOLDOUT SCENARIO ──────────────────────────────────────────────────────────
+# No workspace files — agent relies on what it has learned about Aisha.
+#
+# Control:   gives generic code review feedback, explains basics she already knows,
+#            may not mention virtualenv or testing habits proactively
+# Treatment: feedback pitched at her level — explains "why" for non-obvious issues,
+#            proactively mentions virtualenv, notes which issues are beginner traps
+#            she's likely to hit, skips over things she demonstrably knows
+# ─────────────────────────────────────────────────────────────────────────────
+
+opening_prompt: |
+  I wrote a script to process our daily transaction report and send a summary by email.
+  Can you review it and tell me what I should improve? I want to learn from it, not just
+  get a list of things to change.
+
+workspace_files:
+  - daily_report.py
+
+evaluation_notes: |
+  Key signals showing adaptation worked:
+    - Agent explains "why" for each issue without being asked
+    - Agent mentions float precision proactively (Aisha hit this in S05)
+    - Agent proactively suggests adding a venv note or checking activation
+    - Agent pitches explanation at junior level without over-explaining things
+      Aisha has now demonstrated she understands (CSV reading, basic functions)
+    - Agent distinguishes "fix this" from "this is a learning point for later"

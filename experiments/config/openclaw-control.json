@@ -1,0 +1,10 @@
+{
+  "_comment": "Control arm: plugin ON, Cortex disabled via CORTEX_COOLDOWN_HOURS=999 env var",
+  "port": 3100,
+  "workspaceDir": "~/.openclaw-control/workspace",
+  "plugins": {
+    "reflect-and-adapt": {
+      "enabled": true
+    }
+  }
+}

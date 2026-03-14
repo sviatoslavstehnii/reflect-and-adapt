@@ -1,0 +1,24 @@
+id: s05_instagram_carousel
+persona: sofia
+name: "Repurposing a YouTube Video into an Instagram Carousel"
+
+opening_prompt: |
+  I want to turn my Notion AI review video into an Instagram carousel but I don't want it
+  to just be a summary — I want it to feel like its own thing. The transcript is in the
+  data folder. Can you help me pull out the best carousel from it?
+
+workspace_files:
+  - notion_ai_transcript.txt
+
+signals_to_express:
+  - If agent produces a carousel that's just bullet point summaries: "this feels like a Wikipedia entry — I want it to feel native to Instagram"
+  - If slide text is too long: "each slide needs to be readable in 3 seconds max"
+  - Ask: "what should slide 1 (the cover) say to stop the scroll?"
+  - If agent doesn't suggest a visual direction: "what should each slide actually look like? I'll make it in Canva"
+  - After draft: "can you write the caption too? with the right hashtags for my niche"
+  - Push back on generic carousel formats: "everyone does a '5 tips' format — can we do something more original?"
+
+what_agent_should_learn:
+  - Instagram content must feel native, not like a video summary
+  - Sofia makes carousels in Canva — visual direction per slide is expected
+  - Short, scroll-stopping copy is her standard — not bullets or summaries

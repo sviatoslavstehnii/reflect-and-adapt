@@ -1,0 +1,26 @@
+id: s03_merge_conflict
+persona: aisha
+name: "Resolving a Git Merge Conflict"
+
+opening_prompt: |
+  I merged a branch and now my file has all these weird >>>>>> and ====== markers in it
+  and I have no idea what to do. The repo is in the data folder. Help?
+
+workspace_files:
+  - setup.py   # generates the git repo with conflict state
+
+# setup.py is a Python script — the harness runs it before copying files:
+#   python experiments/scenarios/aisha/s03_merge_conflict/setup.py --target <workspace_data_dir>
+# It creates: data/payment_service/ — a git repo with a conflict in payment.py
+setup_script: setup.py
+
+signals_to_express:
+  - Ask "what are those markers? like what do they actually mean?"
+  - If agent explains without showing the file first: "can you look at the actual conflict in the file?"
+  - Ask "how do I know which version to keep — mine or theirs?"
+  - After resolving: "do I commit now? what's the commit message supposed to say?"
+  - Ask "is there a way to avoid this happening next time?"
+
+what_agent_should_learn:
+  - Aisha understands git basics (add/commit/push) but not branching workflows
+  - She needs conceptual explanation alongside mechanical steps

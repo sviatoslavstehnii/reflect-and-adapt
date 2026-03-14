@@ -1,0 +1,57 @@
+{
+  "region": "us-east-1",
+  "instances": [
+    {
+      "instance_id": "i-0a3f8c2d1e4b5678",
+      "name": "prod-api",
+      "type": "t3.medium",
+      "state": "running",
+      "launched": "2025-06-12",
+      "monthly_cost_usd": 30.37,
+      "last_activity": "2026-03-13",
+      "note": "Production API server — keep running"
+    },
+    {
+      "instance_id": "i-0b9d7e1f2a3c4890",
+      "name": "staging-api",
+      "type": "t3.medium",
+      "state": "running",
+      "launched": "2026-02-28",
+      "monthly_cost_usd": 30.37,
+      "last_activity": "2026-03-11",
+      "note": "Staging environment spun up by Andrei — running 24/7, not needed overnight"
+    },
+    {
+      "instance_id": "i-0c1e2f3a4b5d6012",
+      "name": "old-migration-worker",
+      "type": "t3.large",
+      "state": "running",
+      "launched": "2026-01-15",
+      "monthly_cost_usd": 60.74,
+      "last_activity": "2026-01-28",
+      "note": "Migration job from January — appears to have finished but instance was never stopped"
+    }
+  ],
+  "s3_buckets": [
+    {
+      "name": "teamflow-user-uploads",
+      "size_gb": 284,
+      "monthly_cost_usd": 6.52,
+      "lifecycle_policy": false
+    },
+    {
+      "name": "teamflow-logs",
+      "size_gb": 1241,
+      "monthly_cost_usd": 28.54,
+      "lifecycle_policy": false,
+      "oldest_log_date": "2024-09-01",
+      "note": "Logs never rotated — 18 months of data accumulating"
+    },
+    {
+      "name": "teamflow-backups",
+      "size_gb": 18,
+      "monthly_cost_usd": 0.41,
+      "lifecycle_policy": true
+    }
+  ]
+}

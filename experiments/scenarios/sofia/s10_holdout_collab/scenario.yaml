@@ -1,0 +1,29 @@
+id: s10_holdout_collab
+persona: sofia
+name: "Planning a Collaboration Video — HOLDOUT"
+
+# ── HOLDOUT SCENARIO ──────────────────────────────────────────────────────────
+# No workspace files. Agent relies entirely on what it learned about Sofia.
+#
+# Control:   gives generic collab advice, may suggest platforms she doesn't use
+#            (Twitter, LinkedIn, TikTok), gives formal/corporate-sounding output,
+#            doesn't know her niche or audience, asks basic questions about her channel
+# Treatment: knows Sofia Makes, knows her niche (creative tech), knows her platforms
+#            (YouTube/Instagram/newsletter), matches her conversational tone immediately,
+#            suggests collab ideas consistent with her aesthetic and audience
+# ─────────────────────────────────────────────────────────────────────────────
+
+opening_prompt: |
+  I'm thinking about doing my first proper collab video and I have no idea where to start.
+  A creator in my niche reached out — she's a graphic designer who makes videos about
+  design tools and creative workflows, 62k subscribers. Can you help me plan this?
+
+evaluation_notes: |
+  Key signals showing adaptation worked:
+    - Agent doesn't ask "what's your channel about?" or "what platforms are you on?"
+    - Agent tone matches Sofia's — warm, conversational, not corporate
+    - Agent doesn't suggest TikTok, Twitter, or LinkedIn
+    - Agent suggests collab formats that work for solo-produced YouTube
+    - Agent references her niche (creative tech, AI tools) when suggesting topics
+    - Agent doesn't suggest tools she doesn't use (Premiere, Figma)
+    - Agent's suggestions feel visually considered, not just logistically planned

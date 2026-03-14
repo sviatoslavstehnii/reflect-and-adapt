@@ -1,0 +1,13 @@
+order_id,customer_id,order_date,gross_amount,product_category
+O1001,C003,2026-02-02,210.00,electronics
+O1002,C007,2026-02-03,890.00,furniture
+O1003,C001,2026-02-05,45.00,apparel
+O1004,C008,2026-02-07,320.00,electronics
+O1005,C003,2026-02-09,88.00,apparel
+O1006,C012,2026-02-11,430.00,furniture
+O1007,C005,2026-02-13,55.00,apparel
+O1008,C007,2026-02-15,1100.00,electronics
+O1009,C010,2026-02-18,44.00,apparel
+O1010,C008,2026-02-21,265.00,electronics
+O1011,C001,2026-02-24,78.00,apparel
+O1012,C012,2026-02-27,195.00,electronics

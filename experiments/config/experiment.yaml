@@ -1,0 +1,44 @@
+# Experiment configuration
+# Run both arms concurrently; each arm processes personas sequentially.
+
+arms:
+  control:
+    port: 3100
+    openclaw_dir: "~/.openclaw-control"
+    env:
+      CORTEX_COOLDOWN_HOURS: "999"
+  treatment:
+    port: 3101
+    openclaw_dir: "~/.openclaw-treatment"
+    env:
+      CORTEX_COOLDOWN_HOURS: "0"
+
+personas:
+  - marcus
+  - aisha
+  - elena
+  - sofia
+
+# Path to scenarios relative to the experiments/ directory
+scenarios_dir: "scenarios"
+personas_dir: "personas"
+
+# Approval session: run after every session >= this index (0-based, so S3 = index 2)
+approval_after_session_index: 2
+
+# Max turns per session before simulator gives up
+max_turns_per_session: 12
+
+# Silence timeout (seconds) to detect end-of-agent-turn via WebSocket
+turn_silence_timeout_s: 15
+
+# How long to wait for Cortex to complete after agent_end (seconds)
+cortex_poll_timeout_s: 90
+cortex_poll_interval_s: 3
+
+# Approval session prompt
+approval_prompt: |
+  Please review and apply all pending workspace suggestions using the manage-proposals skill.
+  For each proposal, run: node skills/proposals/manage-proposals.js approve <id>
+  Then apply the proposed change to the target file.
+  Work through all pending proposals and confirm when done.

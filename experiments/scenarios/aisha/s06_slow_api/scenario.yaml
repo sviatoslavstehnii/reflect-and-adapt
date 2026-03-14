@@ -1,0 +1,24 @@
+id: s06_slow_api
+persona: aisha
+name: "Script is Way Too Slow — Sequential API Calls"
+
+opening_prompt: |
+  I wrote a script that fetches data for a list of users from our API and it takes like
+  3 minutes to run for 50 users. My tech lead said "make it async" but I don't know what
+  that means. The script and a sample log from a run are in the data folder.
+
+workspace_files:
+  - fetch_user_stats.py
+  - run.log
+
+signals_to_express:
+  - Ask "what does async actually mean? like what's happening differently?"
+  - If agent jumps straight to asyncio code: "can you explain it before showing me the code?"
+  - Ask "why can't Python just do multiple things at once normally?"
+  - When agent shows asyncio version: "this looks really different — do I have to rewrite everything?"
+  - Ask "is asyncio the only way or are there simpler options?"
+  - After explanation: "so when should I use async and when should I not bother?"
+
+what_agent_should_learn:
+  - Aisha needs concept-first, code-second — always explain before showing implementation
+  - Concurrency is new to her — build up from "why" before "how"

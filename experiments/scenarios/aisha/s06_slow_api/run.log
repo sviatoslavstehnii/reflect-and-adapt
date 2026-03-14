@@ -1,0 +1,15 @@
+2026-03-13 10:02:01 INFO  Fetching stats for 50 users...
+2026-03-13 10:02:01 DEBUG GET /users/1001/stats -> 200 (3.42s)
+2026-03-13 10:02:05 DEBUG GET /users/1002/stats -> 200 (3.18s)
+2026-03-13 10:02:08 DEBUG GET /users/1003/stats -> 200 (3.61s)
+2026-03-13 10:02:12 DEBUG GET /users/1004/stats -> 200 (2.97s)
+2026-03-13 10:02:15 DEBUG GET /users/1005/stats -> 200 (3.44s)
+2026-03-13 10:02:18 DEBUG GET /users/1006/stats -> 200 (3.29s)
+2026-03-13 10:02:22 DEBUG GET /users/1007/stats -> 200 (3.55s)
+2026-03-13 10:02:25 DEBUG GET /users/1008/stats -> 200 (3.11s)
+2026-03-13 10:02:28 DEBUG GET /users/1009/stats -> 200 (3.38s)
+2026-03-13 10:02:32 DEBUG GET /users/1010/stats -> 200 (3.47s)
+...
+2026-03-13 10:05:03 DEBUG GET /users/1049/stats -> 200 (3.22s)
+2026-03-13 10:05:06 DEBUG GET /users/1050/stats -> 200 (3.41s)
+2026-03-13 10:05:10 INFO  Done in 189.3s

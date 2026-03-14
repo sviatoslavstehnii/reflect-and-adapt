@@ -1,0 +1,21 @@
+id,email,full_name,created_at,last_login,tasks_created,team_size,plan
+1,sarah.okonkwo@bridgepointconsulting.com,Sarah Okonkwo,2025-11-03,2026-03-12,847,42,pro
+2,test@test.com,Test User,2025-02-14,2025-02-14,0,1,trial
+3,m.reinholt@deltaventures.io,Marcus Reinholt,2025-09-18,2026-03-11,312,8,pro
+4,asdf@asdf.com,asdf asdf,2024-12-01,2024-12-01,0,1,trial
+5,demo@teamflow.io,Demo Account,2025-01-10,2025-03-22,4,1,trial
+6,priya.anand@novaworks.co,Priya Anand,2026-01-07,2026-03-13,1203,19,pro
+7,test123@mailinator.com,Test Person,2025-05-30,2025-05-30,0,1,trial
+8,james.v@remotehq.com,James Villanueva,2025-10-22,2026-03-10,574,11,pro
+9,fake_user_99@guerrillamail.com,Fake User,2024-11-15,2024-11-15,0,1,trial
+10,lena.bauer@streampipe.de,Lena Bauer,2026-02-01,2026-03-09,228,6,pro
+11,qwerty@test.org,qwerty qwerty,2025-03-08,2025-03-08,0,1,trial
+12,andrei.popescu@teamflow.io,Andrei Popescu,2025-06-01,2026-03-13,22,1,internal
+13,hello@example.com,Example User,2025-07-19,2025-07-20,1,1,trial
+14,contact@designhive.co,Sofia Marchetti,2026-01-28,2026-03-12,1891,80,enterprise
+15,noreply@noreply.com,No Reply,2025-08-03,2025-08-03,0,1,trial
+16,tom.eriksson@northmark.se,Tom Eriksson,2025-12-14,2026-03-08,445,14,pro
+17,test_account_march@protonmail.com,Test March,2026-03-01,2026-03-01,0,1,trial
+18,c.huang@flowstate.app,Christine Huang,2025-11-30,2026-03-11,683,23,pro
+19,123@123.com,123 123,2025-04-12,2025-04-12,0,1,trial
+20,marcus@teamflow.io,Marcus Chen,2025-06-01,2026-03-13,8,1,internal

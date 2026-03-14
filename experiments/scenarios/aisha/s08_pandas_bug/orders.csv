@@ -1,0 +1,13 @@
+order_id,customer_id,amount,date,status
+1,C001,45.99,2026-02-01,completed
+2,C001,62.50,2026-02-14,completed
+3,C001,38.00,2026-03-02,completed
+4,C002,89.99,2026-02-03,completed
+5,C002,12.50,2026-02-20,completed
+6,C003,210.00,2026-02-07,completed
+7,C003,55.00,2026-02-28,completed
+8,C003,78.00,2026-03-05,completed
+9,C003,91.50,2026-03-10,completed
+10,C004,33.00,2026-02-11,completed
+11,C004,44.00,2026-03-01,refunded
+12,C005,150.00,2026-02-15,completed

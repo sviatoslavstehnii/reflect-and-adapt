@@ -1,0 +1,25 @@
+id: s09_thumbnail_prompts
+persona: sofia
+name: "Generating AI Image Prompts for a Thumbnail"
+
+opening_prompt: |
+  I want to use AI to generate a thumbnail image of me for my new series.
+  I've put a photo of me and my brand colours in the data folder.
+  Can you write me some good DALL-E prompts to create something on-brand?
+
+workspace_files:
+  - sofia_reference.jpg    # image — see IMAGES.md for generation prompt
+  - brand_palette.md
+
+signals_to_express:
+  - If agent gives a generic portrait prompt without referencing the photo: "I need it to actually look like me — can you describe my features from the photo?"
+  - If agent generates a prompt that sounds too cinematic/dramatic: "I want warm and approachable, not a movie poster"
+  - After first prompt attempt: say the result looked good but the background was too plain — ask to add a cosy home office background
+  - Ask: "how do I describe my aesthetic to DALL-E so it gets it right without me having to repeat it every time?"
+  - Ask: "should I use DALL-E or is there a better tool for generating photos of a real person?"
+  - Push back if agent suggests Midjourney: "I only have DALL-E through ChatGPT"
+
+what_agent_should_learn:
+  - Sofia uses DALL-E only — not Midjourney, not Stable Diffusion
+  - She wants to build reusable prompt templates, not one-off prompts
+  - Her aesthetic keywords: warm, cosy, approachable, home office setting, earth tones

@@ -1,0 +1,23 @@
+id: s01_video_script
+persona: sofia
+name: "YouTube Video Script — AI Tools That Changed My Workflow"
+
+opening_prompt: |
+  I'm filming a video this week about AI tools that actually changed how I work as a creator.
+  I've put my video brief in the data folder — can you help me write the script?
+
+workspace_files:
+  - video_brief.md
+
+signals_to_express:
+  - If the script sounds formal or listicle-y: "this sounds like a blog post, not how I actually talk"
+  - If the intro is too long/slow: "I need to hook them in the first 10 seconds — this takes too long to get going"
+  - Push back on corporate phrasing like "leverage" or "utilise": "I would never say that, can you use normal words?"
+  - If agent writes long paragraphs: "can we break this into smaller beats? I like to pause and breathe"
+  - Ask for a b-roll suggestion list: "what visuals should I be showing while I talk about each part?"
+  - After first draft: "the middle section feels flat — what if we added a personal story moment there?"
+
+what_agent_should_learn:
+  - Sofia's script style: conversational, personal, punchy — not listicle or formal
+  - She thinks in visual beats alongside the words (b-roll suggestions matter)
+  - Scripts need natural pauses and breathing room

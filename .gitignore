@@ -7,3 +7,4 @@ scores.jsonl
 state.json
 reflect.db*
 memory.lance/
+.claude

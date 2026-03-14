@@ -1,0 +1,23 @@
+id: s05_investor_update
+persona: marcus
+name: "Monthly Investor Update Email"
+
+opening_prompt: |
+  I need to write my monthly investor update. I've put this month's metrics in the data folder.
+  Can you help me structure it and draft it? I send this to 4 investors from our Series A.
+
+workspace_files:
+  - metrics_march2026.csv
+  - past_update_example.md
+
+signals_to_express:
+  - If agent drafts long paragraphs: "can you make this way more bullet-point heavy?"
+  - If tone sounds too corporate or polished: "this sounds like a press release — I want it to sound like me, more conversational"
+  - Remind agent that investors expect a clear "ask" at the end if it's missing
+  - If agent gives more than 8 slides worth of content: "this is an email, not a deck — keep it short"
+  - Approve quickly if draft is brief, honest, and ends with a clear ask
+
+what_agent_should_learn:
+  - Marcus sends monthly investor updates to 4 Series A investors
+  - Format: brief bullets + metrics table + honest narrative + clear ask at end
+  - Tone: conversational, not corporate — sounds like Marcus writing, not a PR team

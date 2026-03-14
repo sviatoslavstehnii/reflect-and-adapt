@@ -1,0 +1,30 @@
+{
+  "property_name": "Teamflow",
+  "property_id": "G-4X8KM29371",
+  "analytics_version": "GA4",
+  "created": "2025-07-14",
+  "configured_by": "Andrei (developer)",
+  "current_tracking": {
+    "pageviews": true,
+    "sessions": true,
+    "bounce_rate": true,
+    "custom_events": [],
+    "conversions": [],
+    "goals": []
+  },
+  "pages_in_funnel": {
+    "homepage": "https://teamflow.io",
+    "pricing": "https://teamflow.io/pricing",
+    "signup_page": "https://app.teamflow.io/signup",
+    "post_signup_redirect": "https://app.teamflow.io/onboarding",
+    "first_task_created": "tracked in Mixpanel only"
+  },
+  "top_traffic_sources_last_30d": {
+    "organic_search": "38%",
+    "direct": "29%",
+    "linkedin": "18%",
+    "referral": "9%",
+    "other": "6%"
+  },
+  "notes": "Basic snippet installed by Andrei. No events, no conversions configured. Google Tag Manager not installed — GA4 snippet added directly to index.html."
+}

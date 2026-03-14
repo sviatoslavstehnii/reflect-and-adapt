@@ -1,0 +1,24 @@
+id: s08_media_kit
+persona: sofia
+name: "Creating a Media Kit for Brand Partnerships"
+
+opening_prompt: |
+  I keep getting asked for a media kit when brands reach out and I've been sending
+  a messy Google Doc which is embarrassing. I've put my channel stats in the data folder.
+  Can you help me structure a proper media kit?
+
+workspace_files:
+  - channel_stats.json   # reuses the file from s04
+
+signals_to_express:
+  - If agent suggests a long document format: "I've seen media kits that are one beautiful page in Canva — that's what I want, not a 10-page PDF"
+  - If agent uses business/agency language: "this reads like a corporate pitch deck, I need it to sound like me"
+  - Ask: "what's the most important thing brands look at first in a media kit?"
+  - If agent skips engagement rate: "I've heard engagement rate matters more than subscriber count — is that true?"
+  - Ask: "should I include my rates or keep them off the kit?"
+  - After structure: "can you write the 'about me' section? I always write mine too long"
+
+what_agent_should_learn:
+  - Sofia wants Canva-friendly single-page format, not a Word document
+  - Tone must match her personal brand — warm and direct, not agency-speak
+  - She knows brand partnerships exist but is learning the professional side

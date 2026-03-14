@@ -1,0 +1,23 @@
+id: s08_pandas_bug
+persona: aisha
+name: "Pandas GroupBy Giving Wrong Numbers"
+
+opening_prompt: |
+  I'm trying to calculate the average order value per customer in a CSV and my numbers
+  look way off. Like one customer's average is showing as 1200 but their orders are all
+  under 100. The script and data are in the data folder.
+
+workspace_files:
+  - analyse_orders.py
+  - orders.csv
+
+signals_to_express:
+  - Ask "what does groupby actually do under the hood?"
+  - When agent identifies the bug (groupby on wrong column or wrong agg): ask "why does that give wrong numbers instead of just an error?"
+  - Ask "what's the difference between mean() and sum() here, I always mix them up"
+  - If agent suggests .describe() to inspect data: ask "what does describe() show me?"
+  - After fixing: "should I have caught this with a test? how would I test pandas code?"
+
+what_agent_should_learn:
+  - Aisha is learning pandas but gets confused by silent wrong-answer bugs vs loud errors
+  - She benefits from small inspection steps (head, describe) becoming habit

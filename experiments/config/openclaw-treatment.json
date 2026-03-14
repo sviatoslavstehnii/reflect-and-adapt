@@ -1,0 +1,10 @@
+{
+  "_comment": "Treatment arm: plugin fully ON with Cortex and LanceDB memory",
+  "port": 3101,
+  "workspaceDir": "~/.openclaw-treatment/workspace",
+  "plugins": {
+    "reflect-and-adapt": {
+      "enabled": true
+    }
+  }
+}

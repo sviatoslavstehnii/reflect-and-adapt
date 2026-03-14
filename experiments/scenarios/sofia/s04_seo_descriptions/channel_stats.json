@@ -1,0 +1,48 @@
+{
+  "channel": "Sofia Makes",
+  "subscribers": 47200,
+  "total_views": 1840000,
+  "joined": "2022-03-15",
+  "top_performing_videos": [
+    {
+      "title": "I tried every AI image generator so you don't have to",
+      "views": 84200,
+      "likes": 3100,
+      "comments": 412,
+      "avg_watch_time_percent": 54,
+      "top_search_terms": ["best ai image generator 2026", "midjourney vs dall-e", "ai art tools"],
+      "description_excerpt": "okay so I went down a rabbit hole so you don't have to ✨ In this video I'm testing ALL the main AI image generators — Midjourney, DALL-E 3, Adobe Firefly, Ideogram, and a few others. Honest thoughts only, no sponsorship here.\n\n🔗 Links to everything I tested are below!\n\n#AItools #contentcreator #AIart"
+    },
+    {
+      "title": "My honest review of Notion AI after 3 months",
+      "views": 61400,
+      "likes": 2340,
+      "comments": 287,
+      "avg_watch_time_percent": 61,
+      "top_search_terms": ["notion ai review", "is notion ai worth it", "notion for content creators"],
+      "description_excerpt": "I've been using Notion AI every single day for 3 months and I have THOUGHTS. Is it actually worth the extra $10/month? Spoiler: it depends what you're using Notion for.\n\nTimestamps below 👇\n\n#Notion #NotionAI #productivity"
+    },
+    {
+      "title": "Home office upgrade on a budget (under £300)",
+      "views": 38900,
+      "likes": 1890,
+      "comments": 341,
+      "avg_watch_time_percent": 58,
+      "top_search_terms": ["budget home office setup", "home office upgrade uk", "desk setup under 300"],
+      "description_excerpt": "You don't need to spend thousands to have a home office that feels good to work in. Here's everything I upgraded for under £300 — and what I'd prioritise if I were starting from scratch.\n\n📦 Full product list + links in comments!\n\n#homeoffice #desksetup #wfh"
+    }
+  ],
+  "audience": {
+    "age_range_primary": "25-34",
+    "gender_split": "62% female / 38% male",
+    "top_countries": ["UK", "US", "Australia", "Canada", "Germany"],
+    "avg_watch_time_minutes": 7.2,
+    "subscriber_growth_last_30d": 1840
+  },
+  "monetisation": {
+    "adsense": true,
+    "sponsorships": "2-3 per month, avg £600-900 each",
+    "affiliate": true,
+    "digital_products": "Notion templates on Gumroad, £12-28 each"
+  }
+}

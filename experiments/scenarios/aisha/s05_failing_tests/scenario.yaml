@@ -1,0 +1,22 @@
+id: s05_failing_tests
+persona: aisha
+name: "Debugging Failing Unit Tests"
+
+opening_prompt: |
+  I wrote some unit tests and two of them are failing but I thought my code was correct.
+  The module and the test file are in the data folder. What am I doing wrong?
+
+workspace_files:
+  - currency_converter.py
+  - test_currency_converter.py
+
+signals_to_express:
+  - Ask "wait, what's the difference between assertEqual and assertTrue?"
+  - If agent identifies a floating point precision issue: "why doesn't Python just do maths right?"
+  - Ask "should I fix the test or fix the code?"
+  - After fix: "should tests always be this simple or can they test more things at once?"
+  - Ask "what does the -v flag do in pytest?"
+
+what_agent_should_learn:
+  - Aisha writes tests but hasn't internalized why certain assertions exist
+  - She needs the "why" — especially for non-obvious things like float precision

@@ -1,0 +1,23 @@
+Collecting tensorflow==2.13.0
+  Downloading tensorflow-2.13.0-cp311-cp311-linux_x86_64.whl (524.1 MB)
+Collecting keras==2.13.1
+  Downloading keras-2.13.1-py3-none-any.whl (1.7 MB)
+Collecting numpy==1.24.4
+  Downloading numpy-1.24.4-cp311-cp311-linux_x86_64.whl (17.3 MB)
+Collecting pandas==2.0.3
+  Downloading pandas-2.0.3-cp311-cp311-linux_x86_64.whl (11.9 MB)
+
+ERROR: pip's dependency resolver does not currently consider all the packages that are installed.
+This behaviour is the source of the following dependency conflict.
+tensorflow 2.13.0 requires numpy<1.25.0,>=1.23.5, but you have numpy 1.24.4 which is incompatible.
+tensorflow 2.13.0 requires protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<4.24.0,>=3.20.3, but you have protobuf 4.24.3 which is incompatible.
+
+ERROR: Cannot install protobuf==4.24.3 and tensorflow==2.13.0 because these package versions have conflicting dependencies.
+
+The conflict is caused by:
+    The user requested protobuf==4.24.3
+    tensorflow 2.13.0 depends on protobuf<4.24.0
+
+To fix this you could try to:
+1. Loosen the range of package versions you require.
+2. Remove package versions to allow pip's dependency resolver to determine the correct version.

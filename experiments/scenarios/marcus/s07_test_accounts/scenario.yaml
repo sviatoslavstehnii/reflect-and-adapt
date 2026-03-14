@@ -1,0 +1,25 @@
+id: s07_test_accounts
+persona: marcus
+name: "Cleaning Up Test Accounts in the Database"
+
+opening_prompt: |
+  Our database is full of test accounts from when we were building the product.
+  I exported a sample of users — it's in the data folder. There's probably 600-800 fake ones
+  mixed in with real customers. I want to clean them up so our user count is accurate.
+  How do I do this safely?
+
+workspace_files:
+  - users_sample.csv
+
+signals_to_express:
+  - If agent gives SQL DELETE statements: "I don't run SQL — Andrei does. Can you write this as a message I can paste to him?"
+  - If agent suggests Supabase Studio for bulk deletes: ask "is that safe? will it mess up real accounts?"
+  - If agent raises GDPR concerns in a long paragraph: "what's the actual risk in one sentence?"
+  - If agent asks about backups before deleting: react positively, ask "how does Andrei take a backup?"
+  - Engage if agent offers to draft the instructions for Andrei
+  - Ask "once we clean these up, will it affect the count in Mixpanel too?"
+
+what_agent_should_learn:
+  - Database tasks go to Andrei — Marcus needs a clear brief he can relay
+  - User is nervous about data safety; needs reassurance before destructive operations
+  - GDPR awareness but not deep understanding — a one-liner suffices

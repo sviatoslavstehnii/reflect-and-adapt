@@ -1,0 +1,4 @@
+return_id,order_id,customer_id,return_date,refund_amount,reason
+R201,O1002,C007,2026-02-10,890.00,damaged_in_transit
+R202,O1004,C008,2026-02-14,320.00,wrong_item
+R203,O1007,C005,2026-02-18,55.00,changed_mind

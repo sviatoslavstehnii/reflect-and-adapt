@@ -1,0 +1,25 @@
+id: s04_sqlite_query
+persona: aisha
+name: "Querying a SQLite Database for the First Time"
+
+opening_prompt: |
+  My team gave me a SQLite database of our app's data and asked me to find which users
+  signed up last month but never completed their first transaction. The database is in
+  the data folder. I've never really used SQL before — can you walk me through it?
+
+workspace_files:
+  - setup.py   # generates app_data.db
+
+setup_script: setup.py
+
+signals_to_express:
+  - Ask "how do I even open a SQLite database? do I need to install something?"
+  - After agent shows first query: "wait, what does SELECT * actually mean?"
+  - Ask "what's the difference between WHERE and HAVING?"
+  - When agent writes a JOIN: "why do we need a join here? can't we just look in one table?"
+  - After getting results: "how do I export this to a CSV so I can share it?"
+  - Ask "is SQL the same everywhere or is SQLite different from other databases?"
+
+what_agent_should_learn:
+  - Aisha is SQL-beginner — explain every clause, don't skip fundamentals
+  - She learns one concept at a time — don't dump a 5-table JOIN on her

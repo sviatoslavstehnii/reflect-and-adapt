@@ -1,0 +1,23 @@
+id: s08_data_discrepancy
+persona: elena
+name: "Revenue Numbers Don't Match Between Systems"
+
+opening_prompt: |
+  Finance is saying our February revenue was €284,000. My Metabase dashboard shows €271,000.
+  That's a €13k gap and I need to find where it's coming from before our board meeting tomorrow.
+  I've exported both data sources to the data folder.
+
+workspace_files:
+  - metabase_revenue_feb.csv
+  - finance_revenue_feb.csv
+
+signals_to_express:
+  - If agent suggests a vague "reconcile the two files": "I need a specific query that shows me exactly which rows are in one but not the other"
+  - When agent identifies the gap (e.g. different refund handling, different timezone): ask "why would that cause a difference now but not before?"
+  - If agent gives Python: "can I do this with a SQL full outer join instead?"
+  - Ask "what's the standard way to document a reconciliation like this for audit purposes?"
+  - After identifying the cause: "who owns fixing this — me or the finance team?"
+
+what_agent_should_learn:
+  - Reconciliation problems need precise, row-level diagnosis — Elena expects set operations, not summaries
+  - SQL full outer join is her tool for reconciliation, not pandas merge

@@ -1,0 +1,22 @@
+id: s04_slow_query
+persona: elena
+name: "Optimising a Slow PostgreSQL Query"
+
+opening_prompt: |
+  This query runs in 40 seconds on production and it needs to be under 2.
+  The query and the EXPLAIN ANALYZE output are in the data folder.
+
+workspace_files:
+  - slow_query.sql
+  - explain_output.txt
+
+signals_to_express:
+  - If agent suggests an index without checking if one exists: "there's already an index on user_id — can you look at the explain output more carefully?"
+  - If agent rewrites the query completely: "I want to understand why mine is slow before rewriting it — what's the bottleneck?"
+  - If agent suggests VACUUM ANALYZE: accept it but ask "when should I run that — is it safe on a live production db?"
+  - Push back on any suggestion to add a covering index without justification: "what does a covering index buy us here specifically?"
+  - After fix: "how do I confirm the new query actually uses the index?"
+
+what_agent_should_learn:
+  - Elena wants to understand the root cause before accepting a fix
+  - She knows PostgreSQL well — don't explain EXPLAIN ANALYZE basics to her

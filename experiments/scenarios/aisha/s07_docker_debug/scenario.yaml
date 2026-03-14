@@ -1,0 +1,25 @@
+id: s07_docker_debug
+persona: aisha
+name: "Docker Container Won't Start"
+
+opening_prompt: |
+  I'm trying to dockerise a small Flask app for the first time. The container builds fine
+  but crashes immediately when I try to run it. The Dockerfile, app, and the error output
+  are all in the data folder.
+
+workspace_files:
+  - Dockerfile
+  - app.py
+  - requirements.txt
+  - docker_error.log
+
+signals_to_express:
+  - Ask "what does 'exec format error' actually mean?"
+  - If agent identifies missing CMD or wrong ENTRYPOINT: "what's the difference between CMD and ENTRYPOINT?"
+  - Ask "why do I need to EXPOSE the port if I'm already doing -p in the docker run command?"
+  - After first fix: "ok it starts now but I can't reach it in my browser — is that a different problem?"
+  - Ask "should I always use python:3.11-slim or is there something better?"
+
+what_agent_should_learn:
+  - Docker is completely new to Aisha — every Docker concept needs a one-line explanation
+  - She hits sequential problems (build → run → network) — expects guided progression

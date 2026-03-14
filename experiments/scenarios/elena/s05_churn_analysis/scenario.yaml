@@ -1,0 +1,21 @@
+id: s05_churn_analysis
+persona: elena
+name: "Cohort Churn Analysis"
+
+opening_prompt: |
+  I need to build a cohort churn analysis — what percentage of customers acquired each
+  month are still active 1, 2, and 3 months later. I have the customer data in the data folder.
+
+workspace_files:
+  - customers.csv
+
+signals_to_express:
+  - If agent proposes pandas pivot_table approach: "I'd rather do this in SQL — can we use window functions?"
+  - Ask "how do we define 'still active'? last purchase date within 30 days?"
+  - If agent doesn't mention the definition of churn upfront: push back and make them define it first
+  - If agent produces a table without labelling the cohort months clearly: "can the cohort column show the month name, not just a number?"
+  - After result: "what's a typical benchmark for month-1 retention in e-commerce? just a rough idea"
+
+what_agent_should_learn:
+  - Elena defines terms precisely before building — agent should ask/state assumptions, not skip them
+  - SQL window functions are her preferred tool for cohort analysis

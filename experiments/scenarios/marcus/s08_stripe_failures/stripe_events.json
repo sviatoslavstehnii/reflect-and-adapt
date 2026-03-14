@@ -1,0 +1,70 @@
+{
+  "exported_at": "2026-03-13T09:45:00Z",
+  "period": "last 48 hours",
+  "summary": {
+    "total_charges_attempted": 89,
+    "successful": 66,
+    "failed": 23,
+    "failure_rate_today": "25.8%",
+    "failure_rate_yesterday": "3.3%"
+  },
+  "failure_breakdown": {
+    "card_declined": 14,
+    "do_not_honor": 5,
+    "insufficient_funds": 4
+  },
+  "failed_events": [
+    {
+      "id": "ch_3OxK2L2eZvKYlo2C1UvB8Pq1",
+      "created": "2026-03-13T08:12:44Z",
+      "amount_usd": 1080,
+      "customer_email": "t.garcia@mapleleafops.ca",
+      "plan": "annual_pro",
+      "failure_code": "do_not_honor",
+      "failure_message": "The card was declined for an unknown reason.",
+      "renewal": true,
+      "customer_since": "2025-03-13"
+    },
+    {
+      "id": "ch_3OxJ9A2eZvKYlo2C0NmD4Tt7",
+      "created": "2026-03-13T07:58:11Z",
+      "amount_usd": 1080,
+      "customer_email": "admin@sproutworks.io",
+      "plan": "annual_pro",
+      "failure_code": "card_declined",
+      "failure_message": "The card was declined.",
+      "renewal": true,
+      "customer_since": "2025-03-10"
+    },
+    {
+      "id": "ch_3OxH7K2eZvKYlo2C2BqF1Rw3",
+      "created": "2026-03-12T22:34:19Z",
+      "amount_usd": 2160,
+      "customer_email": "billing@northstarhq.com",
+      "plan": "annual_team",
+      "failure_code": "do_not_honor",
+      "failure_message": "The card was declined for an unknown reason.",
+      "renewal": true,
+      "customer_since": "2025-03-12"
+    },
+    {
+      "id": "ch_3OxG5P2eZvKYlo2C3CrG2Sx4",
+      "created": "2026-03-12T19:07:52Z",
+      "amount_usd": 348,
+      "customer_email": "ops@tideflow.co",
+      "plan": "annual_starter",
+      "failure_code": "card_declined",
+      "failure_message": "The card was declined.",
+      "renewal": true,
+      "customer_since": "2025-03-11"
+    }
+  ],
+  "pattern_notes": {
+    "all_failures_are_renewals": true,
+    "new_signups_succeeding": true,
+    "affected_plans": ["annual_pro", "annual_team", "annual_starter"],
+    "monthly_renewals_unaffected": true,
+    "geographic_spread": ["CA", "US", "DE", "UK"],
+    "started_approx": "2026-03-12T10:00:00Z"
+  }
+}

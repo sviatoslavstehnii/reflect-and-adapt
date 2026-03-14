@@ -1,0 +1,44 @@
+{
+  "report_period": {
+    "start": "2026-03-01",
+    "end": "2026-03-13"
+  },
+  "total_cost_usd": 847.32,
+  "previous_month_total_usd": 340.18,
+  "services": [
+    {
+      "service": "Amazon EC2",
+      "cost_usd": 412.40,
+      "previous_month_usd": 180.20,
+      "change_percent": 129,
+      "note": "Running 3 instances including one t3.large that has been idle for 6+ weeks"
+    },
+    {
+      "service": "Amazon S3",
+      "cost_usd": 198.10,
+      "previous_month_usd": 89.30,
+      "change_percent": 122,
+      "note": "teamflow-logs bucket has 1.2TB of unrotated logs going back 18 months"
+    },
+    {
+      "service": "AWS Data Transfer",
+      "cost_usd": 164.20,
+      "previous_month_usd": 52.40,
+      "change_percent": 213,
+      "note": "Spike correlates with S3 log reads — possibly monitoring or backup job"
+    },
+    {
+      "service": "Amazon RDS",
+      "cost_usd": 47.80,
+      "previous_month_usd": 11.90,
+      "change_percent": 302,
+      "note": "New staging RDS instance (db.t3.micro) started 2026-02-28, running 24/7"
+    },
+    {
+      "service": "Other",
+      "cost_usd": 24.82,
+      "previous_month_usd": 6.38,
+      "change_percent": 289
+    }
+  ]
+}

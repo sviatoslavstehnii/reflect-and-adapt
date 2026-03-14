@@ -1,0 +1,24 @@
+id: s04_seo_descriptions
+persona: sofia
+name: "Writing SEO-Optimised Video Descriptions"
+
+opening_prompt: |
+  My video descriptions are kind of an afterthought and I know they affect search.
+  I've put my channel stats and a couple of my current descriptions in the data folder.
+  Can you help me write a better one for my latest video and maybe a template I can reuse?
+
+workspace_files:
+  - channel_stats.json
+
+signals_to_express:
+  - If agent writes a description that sounds keyword-stuffed: "this sounds unnatural — people will read this, not just Google"
+  - If agent uses formal language: "this doesn't sound like me at all, too stiff"
+  - Ask: "where should I put the most important keywords — start, middle, or end?"
+  - If agent suggests a very long description: "how long should this actually be? I don't want to write an essay"
+  - Ask: "what hashtags should I use? I never know how many"
+  - After template: "can you write the actual description for my CapCut AI video using this template?"
+
+what_agent_should_learn:
+  - Sofia's descriptions need to sound like her — not SEO copy
+  - She's learning SEO basics, not an expert — explain reasoning briefly
+  - She wants reusable systems, not one-off outputs

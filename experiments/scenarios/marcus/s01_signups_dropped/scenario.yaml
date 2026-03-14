@@ -1,0 +1,23 @@
+id: s01_signups_dropped
+persona: marcus
+name: "Signups Dropped This Week"
+
+opening_prompt: |
+  Our signups dropped like 40% this week compared to last week and I have no idea why.
+  I exported the data from Mixpanel — it's in the data folder. Can you take a look and help me figure out what happened?
+
+# Files the harness copies to ~/.openclaw/workspace/data/ before this session
+workspace_files:
+  - mixpanel_export.csv
+
+signals_to_express:
+  - If agent asks about Google Analytics or mentions GA: say "we use Mixpanel, not GA"
+  - If agent suggests running SQL or writing code to analyze: "I don't do that — can you just look at the CSV?"
+  - If agent gives a wall of text: "can you just give me a list of possible causes, most likely first?"
+  - If agent identifies LinkedIn ads pausing as the cause: react with "oh that makes sense, we paused them Mar 11"
+  - If agent asks what tools you use for ads: "LinkedIn mostly, we paused the campaign when budget ran out"
+
+what_agent_should_learn:
+  - User uses Mixpanel, not Google Analytics
+  - User doesn't do data analysis themselves — wants interpretation, not raw analysis
+  - Prefers ranked list of causes over narrative explanation

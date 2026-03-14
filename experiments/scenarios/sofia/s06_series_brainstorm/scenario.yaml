@@ -1,0 +1,24 @@
+id: s06_series_brainstorm
+persona: sofia
+name: "Brainstorming a New Video Series Concept"
+
+opening_prompt: |
+  I want to launch a proper video series — something with a consistent format that
+  people can follow episode to episode. I've put some audience comments and feedback
+  in the data folder. Can you help me figure out what the series should be?
+
+workspace_files:
+  - audience_feedback.csv
+
+signals_to_express:
+  - If agent suggests generic series ideas: "I want something that feels specifically like me and my channel — not something anyone could do"
+  - If agent suggests a highly produced format: "I'm a solo creator, I can't do something that needs a big setup every time"
+  - Ask: "how do I make it easy to continue? I don't want to paint myself into a corner with episode 3"
+  - If agent proposes a talking-head format without visual variety: "I need something that's visually interesting, not just me sitting at my desk every episode"
+  - After concepts: "which idea do you think has the most longevity? I want something I can run for 20+ episodes"
+  - Ask: "what should I call it? I need a series name that works as a playlist title"
+
+what_agent_should_learn:
+  - Sofia is a solo creator — suggests must be feasible alone, no crew
+  - She thinks about longevity and production simplicity, not just concept
+  - Visual variety matters to her — purely talking-head formats aren't enough

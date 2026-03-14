@@ -1,0 +1,23 @@
+Sort  (cost=2847291.44..2847292.19 rows=302 width=72) (actual time=41823.112..41823.189 rows=847 loops=1)
+  Sort Key: (sum(o.amount)) DESC
+  Sort Method: quicksort  Memory: 142kB
+  ->  HashAggregate  (cost=2847268.91..2847277.43 rows=302 width=72) (actual time=41822.341..41822.801 rows=847 loops=1)
+        Group Key: c.id, c.email, c.segment, c.lifetime_value
+        Batches: 1  Memory Usage: 793kB
+        Filter: (count(o.id) > 3)
+        Rows Removed by Filter: 18432
+        ->  Hash Join  (cost=89234.12..2841234.88 rows=803206 width=44) (actual time=1203.441..40891.223 rows=2847291 loops=1)
+              Hash Cond: (o.customer_id = c.id)
+              ->  Seq Scan on orders o  (cost=0.00..312847.12 rows=1923847 width=16) (actual time=0.041..8234.112 rows=1923847 loops=1)
+                    Filter: ((status = 'completed') AND (created_at >= (now() - '90 days'::interval)))
+                    Rows Removed by Filter: 6076153
+              ->  Hash  (cost=74891.23..74891.23 rows=420000 width=36) (actual time=1198.334..1198.334 rows=420000 loops=1)
+                    Buckets: 524288  Batches: 1  Memory Usage: 28734kB
+                    ->  Seq Scan on customers c  (cost=18234.56..74891.23 rows=420000 width=36) (actual time=18234.112..1134.223 rows=248312 loops=8012000)
+                          Filter: (lifetime_value > (SubPlan 1))
+                          Rows Removed by Filter: 171688
+                          SubPlan 1
+                            ->  Aggregate  (cost=18234.56..18234.57 rows=1 width=8) (actual time=0.002..0.002 rows=1 loops=8012000)
+                                  ->  Seq Scan on customers  (cost=0.00..7891.00 rows=420000 width=8) (actual time=...)
+Planning Time: 12.334 ms
+Execution Time: 41834.221 ms

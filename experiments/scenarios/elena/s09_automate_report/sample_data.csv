@@ -1,0 +1,16 @@
+order_id,customer_id,order_date,amount,status,product_category,refund_amount,refund_date
+O3001,C007,2026-02-03,890.00,returned,furniture,890.00,2026-02-10
+O3002,C003,2026-02-05,210.00,completed,electronics,,
+O3003,C008,2026-02-07,320.00,returned,electronics,320.00,2026-02-14
+O3004,C001,2026-02-09,45.00,completed,apparel,,
+O3005,C012,2026-02-11,430.00,completed,furniture,,
+O3006,C005,2026-02-13,55.00,returned,apparel,55.00,2026-02-18
+O3007,C007,2026-02-15,1100.00,completed,electronics,,
+O3008,C003,2026-02-17,88.00,completed,apparel,,
+O3009,C010,2026-02-18,44.00,completed,apparel,,
+O3010,C008,2026-02-21,265.00,completed,electronics,,
+O3011,C001,2026-02-24,78.00,completed,apparel,,
+O3012,C012,2026-02-27,195.00,completed,electronics,,
+O3013,C014,2026-02-28,380.00,pending,furniture,,
+O3014,C015,2026-02-28,130.00,pending,apparel,,
+O3015,C003,2026-02-28,99.00,completed,apparel,,

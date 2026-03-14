@@ -1,0 +1,22 @@
+id: s09_automate_report
+persona: elena
+name: "Automating a Manual Monthly Report"
+
+opening_prompt: |
+  I have a report I rebuild manually in Excel every month — it takes me about 3 hours.
+  I want to automate it. I've put the Excel file and a description of what I do in the data folder.
+
+workspace_files:
+  - manual_report_description.md
+  - sample_data.xlsx
+
+signals_to_express:
+  - If agent suggests building it entirely in Python pandas: "could I do most of this in SQL and just output the result? I'd rather keep the logic in the database"
+  - If agent suggests a full ETL framework (Airflow, Prefect): "that feels like overkill — I just want a script I can run monthly, not a pipeline"
+  - Ask "should I use openpyxl or xlsxwriter for the Excel output? what's the difference?"
+  - If agent writes the automation without parameterising the month: "how do I tell it which month to run for?"
+  - After script is drafted: "how do I schedule this to run automatically at the start of each month?"
+
+what_agent_should_learn:
+  - Elena prefers SQL for logic, Python only for output formatting / orchestration
+  - She explicitly doesn't want over-engineered solutions — a simple script beats a pipeline

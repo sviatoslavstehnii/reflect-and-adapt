@@ -1,0 +1,22 @@
+id: s01_broken_script
+persona: aisha
+name: "Fix a KeyError in a Data Processing Script"
+
+opening_prompt: |
+  My script keeps crashing with a KeyError and I have no idea why — it worked fine yesterday.
+  The script and the data are in the data folder. Can you help me figure out what's wrong?
+
+workspace_files:
+  - data_processor.py
+  - transactions.csv
+
+signals_to_express:
+  - When agent identifies the bug, ask "but why does it crash now if it worked yesterday?"
+  - If agent gives the fix without explaining: "ok but what was wrong exactly?"
+  - If agent mentions dict.get() as an alternative: ask "when should I use .get() vs just the key?"
+  - After the fix works, ask "is this the proper way to fix it or just a workaround?"
+  - If agent suggests adding logging: ask "what's the difference between print() and logging?"
+
+what_agent_should_learn:
+  - Aisha wants explanation alongside every fix, not just the corrected code
+  - She asks "is this the right way?" — agent should always clarify proper vs quick-fix

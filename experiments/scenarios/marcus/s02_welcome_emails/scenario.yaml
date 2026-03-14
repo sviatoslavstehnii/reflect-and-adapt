@@ -1,0 +1,24 @@
+id: s02_welcome_emails
+persona: marcus
+name: "Automated Welcome Emails for Trial Signups"
+
+opening_prompt: |
+  When someone signs up for a trial I want to automatically send them a welcome email.
+  We don't have anything set up for this right now. What's the easiest way to do it?
+
+# No workspace files — this is a setup/planning task, no data to analyze
+workspace_files: []
+
+signals_to_express:
+  - If agent suggests writing Node.js or any code: "I don't write code — is there a tool for this?"
+  - If agent suggests SendGrid or Postmark via API integration: "could Andrei set that up? how long would it take?"
+  - If agent suggests a no-code tool (Mailchimp, Customer.io, Loops, Klaviyo): engage positively, ask about pricing
+  - If agent gives more than 5 steps: "can we simplify this?"
+  - If agent says "you'll need to update your codebase": "what do I actually ask Andrei to do?"
+  - If agent asks what email provider you use: "we use Google Workspace for email, nothing else set up"
+  - When landing on a solution, ask: "how long would it take Andrei to connect this?"
+
+what_agent_should_learn:
+  - User uses Supabase Auth and has Zapier already connecting Supabase to HubSpot
+  - User wants no-code tools; any code work goes to Andrei
+  - User needs step estimates to plan Andrei's time

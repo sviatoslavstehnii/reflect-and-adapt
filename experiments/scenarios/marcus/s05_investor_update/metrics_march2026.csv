@@ -1,0 +1,11 @@
+metric,february_2026,march_2026,change
+MRR (USD),38800,41200,+6.2%
+ARR (USD),465600,494400,+6.2%
+Active users (MAU),1701,1847,+8.6%
+Monthly churn rate,2.8%,2.1%,-0.7pp
+NPS score,41,47,+6
+New customers,11,14,+3
+Lost customers,8,6,-2
+Avg revenue per account (USD),318,334,+5.0%
+Trial to paid conversion,22%,24%,+2pp
+Support tickets opened,143,121,-15.4%

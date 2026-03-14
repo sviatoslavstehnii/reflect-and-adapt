@@ -1,0 +1,23 @@
+id: s03_thumbnail_concepts
+persona: sofia
+name: "Thumbnail Concepts for a New Video"
+
+opening_prompt: |
+  I need thumbnail ideas for my new CapCut AI video. I've put some of my existing thumbnails
+  in the data folder so you can see my style. Can you help me come up with 3 concepts?
+
+workspace_files:
+  - existing_thumbnails.png   # image — see IMAGES.md for generation prompt
+  - thumbnail_brief.md
+
+signals_to_express:
+  - If agent describes concepts without referencing the existing thumbnail style: "have you looked at my current thumbnails? I want it to feel consistent"
+  - If agent suggests a dark or high-contrast style: "my thumbnails are always warm and bright — dark doesn't fit my brand"
+  - If agent suggests Photoshop or Figma for execution: "I make all my thumbnails in Canva, can you describe it in Canva terms?"
+  - After concepts: pick one and ask "how do I recreate this in Canva step by step?"
+  - Ask: "which of the three do you think would get the most clicks and why?"
+
+what_agent_should_learn:
+  - Sofia makes thumbnails in Canva only — never suggest Photoshop/Figma
+  - Her thumbnail style: warm, bright, her face + bold text + clean background
+  - She wants reasoning behind creative suggestions, not just descriptions

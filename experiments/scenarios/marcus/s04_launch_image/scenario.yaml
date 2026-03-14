@@ -1,0 +1,27 @@
+id: s04_launch_image
+persona: marcus
+name: "Product Launch Announcement Image"
+
+opening_prompt: |
+  We're launching a new feature on Thursday — async video updates inside tasks, like Loom but built in.
+  I need a nice announcement image for Twitter, LinkedIn, and our blog.
+  I've put our brand guide and a mockup of what the feature looks like in the data folder.
+  Can you help me create something?
+
+workspace_files:
+  - brand_guide.md
+  - product_mockup.png
+
+signals_to_express:
+  - If agent gives a Midjourney prompt: "I don't use Midjourney — I have DALL-E through ChatGPT and Canva"
+  - If agent suggests Figma or Adobe tools: "I don't use those, that's Andrei's territory"
+  - Engage positively with Canva template suggestions or DALL-E prompts
+  - If agent gives a DALL-E prompt, say you tried it and ask to refine toward the brand colors
+  - Say "the navy isn't showing up, it looks too light" to generate another correction signal
+  - Ask for three different prompt variations to pick from
+  - Mention the tagline "Updates that don't need a meeting" should appear in the image
+
+what_agent_should_learn:
+  - User has Canva Pro and DALL-E (via ChatGPT Plus) — not Figma, not Midjourney
+  - Brand colors: navy #1E3A8A and bright blue #60A5FA
+  - User iterates on creative output — expects multiple variations
