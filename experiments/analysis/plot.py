@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-Generates charts from results/scores.csv.
+Generates charts from results/sessions.csv (session-level aggregates).
 
 Saves to results/plots/:
-  - helpfulness_over_sessions.png   — treatment vs control, per persona
-  - metrics_summary.png             — bar chart of all metrics, final 3 sessions
-  - score_distribution.png          — violin plots, treatment vs control
+  helpfulness_over_sessions.png     — adaptive vs baseline, per persona
+  friction_over_sessions.png        — correction_rate + frustration_rate over sessions
+  satisfaction_over_sessions.png    — user satisfaction trend
+  turns_per_session.png             — turns needed to complete task (shorter = more efficient)
+  personalization_hit_rate.png      — % turns where agent used unprompted user knowledge
+  metrics_summary.png               — bar chart of key metrics, final 3 sessions
 
 Usage: python analysis/plot.py
 """
@@ -17,6 +20,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import pandas as pd
 
 EXPERIMENTS_DIR = Path(__file__).parent.parent
@@ -24,85 +28,198 @@ RESULTS_DIR = EXPERIMENTS_DIR / "results"
 PLOTS_DIR = RESULTS_DIR / "plots"
 
 SESSION_ORDER = ["s01", "s02", "s03", "s04", "s05", "s06", "s07", "s08", "s09", "s10"]
-METRICS = ["helpfulness", "conciseness", "task_completed", "response_accepted", "format_match"]
+ARM_STYLES = {"adaptive": ("-o", "#2196F3"), ("baseline"): ("--s", "#9E9E9E")}
 
 
 def load() -> pd.DataFrame:
-    path = RESULTS_DIR / "scores.csv"
+    path = RESULTS_DIR / "sessions.csv"
     if not path.exists():
-        print(f"scores.csv not found at {path}. Run collect.py first.")
-        sys.exit(1)
+        # Fall back to raw scores.csv and recompute session aggregates
+        raw_path = RESULTS_DIR / "scores.csv"
+        if not raw_path.exists():
+            print("Neither sessions.csv nor scores.csv found. Run collect.py first.")
+            sys.exit(1)
+        print("sessions.csv not found — falling back to scores.csv")
+        return _aggregate_from_scores(pd.read_csv(raw_path))
     df = pd.read_csv(path)
-    # Normalise session_num ordering
     df["session_num"] = pd.Categorical(df["session_num"], categories=SESSION_ORDER, ordered=True)
     return df
 
 
-def helpfulness_over_sessions(df: pd.DataFrame) -> None:
-    personas = df["persona"].dropna().unique()
-    fig, axes = plt.subplots(
-        1, len(personas), figsize=(6 * len(personas), 4), squeeze=False
+def _aggregate_from_scores(df: pd.DataFrame) -> pd.DataFrame:
+    """Recompute session-level aggregates from raw turn scores."""
+    SATISFACTION_SCORE = {"positive": 1.0, "neutral": 0.5, "negative": 0.0}
+    if "satisfaction_score" not in df.columns:
+        df["satisfaction_score"] = df["user_satisfaction"].map(SATISFACTION_SCORE)
+    turns_per = df.groupby("session_id").size().reset_index(name="turns_per_session")
+    df = df.merge(turns_per, on="session_id", how="left")
+    agg_funcs = {
+        "helpfulness": "mean", "conciseness": "mean", "satisfaction_score": "mean",
+        "correction_signal": "mean", "frustration_signal": "mean",
+        "task_completed": "mean", "response_accepted": "mean",
+        "format_match": "mean", "turns_per_session": "first",
+    }
+    if "personalization_hit" in df.columns:
+        agg_funcs["personalization_hit"] = "mean"
+    sessions = (
+        df.groupby(["arm", "persona", "session_id", "session_num"])
+        .agg(agg_funcs).reset_index()
+        .rename(columns={"correction_signal": "correction_rate", "frustration_signal": "frustration_rate"})
     )
-    fig.suptitle("Helpfulness over Sessions: Treatment vs Control", fontsize=14)
+    sessions["session_num"] = pd.Categorical(sessions["session_num"], categories=SESSION_ORDER, ordered=True)
+    return sessions
+
+
+def _arm_style(arm: str) -> tuple[str, str]:
+    return ARM_STYLES.get(arm, ("-o", "#795548"))
+
+
+def _per_persona_line_chart(df, metric, ylabel, title, filename, ylim=None, pct=False):
+    """Generic per-persona line chart, one subplot per persona."""
+    personas = sorted(df["persona"].dropna().unique())
+    fig, axes = plt.subplots(1, len(personas), figsize=(5.5 * len(personas), 4), squeeze=False)
+    fig.suptitle(title, fontsize=13)
 
     for ax, persona in zip(axes[0], personas):
         subset = df[df["persona"] == persona]
-        for arm, style in [("treatment", "-o"), ("control", "--s")]:
-            arm_data = subset[subset["arm"] == arm]
-            if arm_data.empty:
-                continue
-            avg = arm_data.groupby("session_num", observed=True)["helpfulness"].mean()
-            ax.plot(avg.index.astype(str), avg.values, style, label=arm, linewidth=2)
-        ax.set_title(persona)
+        for arm in sorted(subset["arm"].unique()):
+            style, color = _arm_style(arm)
+            arm_data = subset[subset["arm"] == arm].sort_values("session_num")
+            avg = arm_data.groupby("session_num", observed=True)[metric].mean()
+            vals = avg.values * 100 if pct else avg.values
+            ax.plot(avg.index.astype(str), vals, style, label=arm, color=color, linewidth=2, markersize=5)
+        ax.set_title(persona, fontsize=11)
         ax.set_xlabel("Session")
-        ax.set_ylabel("Avg Helpfulness (1–5)")
-        ax.set_ylim(1, 5)
-        ax.legend()
+        ax.set_ylabel(ylabel)
+        if ylim:
+            ax.set_ylim(*ylim)
+        if pct:
+            ax.yaxis.set_major_formatter(mticker.PercentFormatter())
+        ax.legend(fontsize=9)
         ax.grid(True, alpha=0.3)
+        ax.tick_params(axis="x", rotation=45)
 
     plt.tight_layout()
-    _save("helpfulness_over_sessions.png")
+    _save(filename)
+
+
+def helpfulness_over_sessions(df: pd.DataFrame) -> None:
+    _per_persona_line_chart(
+        df, "helpfulness", "Avg Helpfulness (1–5)",
+        "Helpfulness over Sessions: Adaptive vs Baseline",
+        "helpfulness_over_sessions.png", ylim=(1, 5),
+    )
+
+
+def satisfaction_over_sessions(df: pd.DataFrame) -> None:
+    _per_persona_line_chart(
+        df, "satisfaction_score", "Satisfaction (0=neg, 0.5=neutral, 1=pos)",
+        "User Satisfaction over Sessions: Adaptive vs Baseline",
+        "satisfaction_over_sessions.png", ylim=(0, 1),
+    )
+
+
+def friction_over_sessions(df: pd.DataFrame) -> None:
+    """Correction rate + frustration rate per session — should fall for adaptive."""
+    personas = sorted(df["persona"].dropna().unique())
+    fig, axes = plt.subplots(2, len(personas), figsize=(5.5 * len(personas), 7), squeeze=False)
+    fig.suptitle("Friction over Sessions: Correction & Frustration Rates", fontsize=13)
+
+    for col, persona in enumerate(personas):
+        subset = df[df["persona"] == persona]
+        for metric, row, label in [
+            ("correction_rate", 0, "Correction Rate"),
+            ("frustration_rate", 1, "Frustration Rate"),
+        ]:
+            ax = axes[row][col]
+            for arm in sorted(subset["arm"].unique()):
+                style, color = _arm_style(arm)
+                arm_data = subset[subset["arm"] == arm].sort_values("session_num")
+                avg = arm_data.groupby("session_num", observed=True)[metric].mean()
+                ax.plot(avg.index.astype(str), avg.values * 100, style, label=arm,
+                        color=color, linewidth=2, markersize=5)
+            if row == 0:
+                ax.set_title(persona, fontsize=11)
+            ax.set_ylabel(f"{label} (%)")
+            ax.set_xlabel("Session")
+            ax.set_ylim(0, 100)
+            ax.yaxis.set_major_formatter(mticker.PercentFormatter())
+            ax.legend(fontsize=9)
+            ax.grid(True, alpha=0.3)
+            ax.tick_params(axis="x", rotation=45)
+
+    plt.tight_layout()
+    _save("friction_over_sessions.png")
+
+
+def turns_per_session(df: pd.DataFrame) -> None:
+    """Turns needed per session — fewer turns over time = agent gets things right faster."""
+    if "turns_per_session" not in df.columns:
+        print("turns_per_session not in data — skipping chart.")
+        return
+    _per_persona_line_chart(
+        df, "turns_per_session", "Avg Turns per Session",
+        "Turns to Task Completion over Sessions\n(fewer = agent needs less back-and-forth)",
+        "turns_per_session.png",
+    )
+
+
+def personalization_hit_rate(df: pd.DataFrame) -> None:
+    """% of turns where agent used user-specific knowledge unprompted."""
+    if "personalization_hit" not in df.columns:
+        print("personalization_hit not in data — skipping chart.")
+        return
+    _per_persona_line_chart(
+        df, "personalization_hit", "Personalization Hit Rate (%)",
+        "Personalization Hit Rate over Sessions\n(agent uses user knowledge unprompted)",
+        "personalization_hit_rate.png", ylim=(0, 100), pct=True,
+    )
 
 
 def metrics_summary(df: pd.DataFrame) -> None:
-    """Bar chart comparing treatment vs control on final 3 sessions (or all if fewer)."""
+    """Bar chart comparing adaptive vs baseline on final 3 sessions (or all if fewer)."""
     late_sessions = SESSION_ORDER[-3:]
     late = df[df["session_num"].isin(late_sessions)]
     if late.empty:
-        late = df  # fall back to all available sessions
+        late = df
 
-    numeric_metrics = ["helpfulness", "conciseness", "task_completed", "response_accepted", "format_match"]
-    available = [m for m in numeric_metrics if m in late.columns]
+    candidates = [
+        ("helpfulness", "Helpfulness\n(1–5 scale)"),
+        ("satisfaction_score", "Satisfaction\n(0–1)"),
+        ("correction_rate", "Correction\nRate"),
+        ("frustration_rate", "Frustration\nRate"),
+        ("response_accepted", "Response\nAccepted"),
+        ("personalization_hit", "Personalization\nHit Rate"),
+    ]
+    available = [(col, label) for col, label in candidates if col in late.columns]
+    cols = [c for c, _ in available]
+    labels = [l for _, l in available]
 
-    summary = late.groupby("arm")[available].mean()
+    summary = late.groupby("arm")[cols].mean()
 
-    fig, ax = plt.subplots(figsize=(10, 5))
-    summary.T.plot(kind="bar", ax=ax, rot=0)
-    ax.set_title("Metric Averages — Final 3 Sessions (S08–S10)")
+    fig, ax = plt.subplots(figsize=(max(10, len(cols) * 1.8), 5))
+    x = range(len(cols))
+    width = 0.35
+    arms = list(summary.index)
+
+    for i, arm in enumerate(arms):
+        _, color = _arm_style(arm)
+        offset = (i - len(arms) / 2 + 0.5) * width
+        values = [summary.loc[arm, c] for c in cols]
+        bars = ax.bar([xi + offset for xi in x], values, width, label=arm, color=color, alpha=0.85)
+        for bar, val in zip(bars, values):
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01,
+                    f"{val:.2f}", ha="center", va="bottom", fontsize=8)
+
+    ax.set_title("Metric Averages — Final 3 Sessions (S08–S10)", fontsize=13)
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(labels, fontsize=9)
     ax.set_ylabel("Score")
-    ax.set_ylim(0, 5)
+    ax.set_ylim(0, max(summary.max().max() * 1.2, 1.1))
     ax.legend(title="Arm")
     ax.grid(True, axis="y", alpha=0.3)
     plt.tight_layout()
     _save("metrics_summary.png")
-
-
-def score_distribution(df: pd.DataFrame) -> None:
-    """Violin plots of helpfulness distribution by arm."""
-    fig, ax = plt.subplots(figsize=(7, 4))
-
-    arms = df["arm"].unique()
-    data_by_arm = [df[df["arm"] == a]["helpfulness"].dropna().values for a in arms]
-
-    parts = ax.violinplot(data_by_arm, positions=range(len(arms)), showmedians=True)
-    ax.set_xticks(range(len(arms)))
-    ax.set_xticklabels(arms)
-    ax.set_ylabel("Helpfulness (1–5)")
-    ax.set_title("Helpfulness Distribution: Treatment vs Control")
-    ax.set_ylim(0.5, 5.5)
-    ax.grid(True, axis="y", alpha=0.3)
-    plt.tight_layout()
-    _save("score_distribution.png")
 
 
 def _save(filename: str) -> None:
@@ -115,11 +232,14 @@ def _save(filename: str) -> None:
 
 def main() -> None:
     df = load()
-    print(f"Loaded {len(df)} rows. Personas: {df['persona'].unique()}")
+    print(f"Loaded {len(df)} sessions. Personas: {sorted(df['persona'].unique())}")
 
     helpfulness_over_sessions(df)
+    satisfaction_over_sessions(df)
+    friction_over_sessions(df)
+    turns_per_session(df)
+    personalization_hit_rate(df)
     metrics_summary(df)
-    score_distribution(df)
 
     print("Done.")
 

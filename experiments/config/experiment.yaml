@@ -2,14 +2,14 @@
 # Run both arms concurrently; each arm processes personas sequentially.
 
 arms:
-  control:
+  baseline:
     port: 3100
-    openclaw_dir: "~/.openclaw-control"
+    openclaw_dir: "~/.openclaw-baseline"
     env:
       CORTEX_COOLDOWN_HOURS: "999"
-  treatment:
+  adaptive:
     port: 3101
-    openclaw_dir: "~/.openclaw-treatment"
+    openclaw_dir: "~/.openclaw-adaptive"
     env:
       CORTEX_COOLDOWN_HOURS: "0"
 
@@ -24,7 +24,7 @@ scenarios_dir: "scenarios"
 personas_dir: "personas"
 
 # Approval session: run after every session >= this index (0-based, so S3 = index 2)
-approval_after_session_index: 2
+approval_after_session_index: 0
 
 # Max turns per session before simulator gives up
 max_turns_per_session: 12
@@ -38,7 +38,11 @@ cortex_poll_interval_s: 3
 
 # Approval session prompt
 approval_prompt: |
-  Please review and apply all pending workspace suggestions using the manage-proposals skill.
-  For each proposal, run: node skills/proposals/manage-proposals.js approve <id>
-  Then apply the proposed change to the target file.
-  Work through all pending proposals and confirm when done.
+  You have pending workspace adaptation proposals. For each PENDING proposal:
+  1. Run: node skills/proposals/manage-proposals.js list
+     to see all pending proposals and their IDs.
+  2. For each proposal, read the suggested change and apply it directly to the target file.
+  3. After applying the change to the file, approve it:
+     node skills/proposals/manage-proposals.js approve <id>
+  Work through every PENDING proposal in order. Do not skip any.
+  Confirm each file edit before approving. When all are done, say "All proposals applied."

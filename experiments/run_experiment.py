@@ -172,7 +172,7 @@ def parse_args() -> argparse.Namespace:
         help="Persona IDs to run (default: all from config)"
     )
     parser.add_argument(
-        "--arms", nargs="+", choices=["control", "treatment"],
+        "--arms", nargs="+", choices=["baseline", "adaptive"],
         help="Arms to run (default: both)"
     )
     parser.add_argument(

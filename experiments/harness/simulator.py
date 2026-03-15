@@ -79,12 +79,6 @@ class UserSimulator:
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         )
 
-    def _qwen_client(self) -> OpenAI:
-        return OpenAI(
-            api_key=os.environ["QWEN_API_KEY"],
-            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-        )
-
     def _call_llm(self, messages: list[dict]) -> str:
         try:
             client = self._azure_client()
@@ -97,16 +91,29 @@ class UserSimulator:
             )
             return resp.choices[0].message.content or ""
         except Exception as azure_err:
-            log.warning(f"Azure OpenAI failed ({azure_err}), falling back to Qwen...")
-            client = self._qwen_client()
-            qwen_model = os.environ.get("QWEN_MODEL", "qwen-plus")
-            resp = client.chat.completions.create(
-                model=qwen_model,
-                messages=messages,
-                max_tokens=512,
-                temperature=1.1,
+            log.warning(f"Azure OpenAI failed ({azure_err}), falling back to Gemini Flash...")
+            from google import genai
+            from google.genai import types
+            gclient = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
+            flash_model = os.environ.get("GOOGLE_MODEL_FLASH", "gemini-3-flash-preview")
+            system_msg = next((m["content"] for m in messages if m["role"] == "system"), None)
+            history = [
+                types.Content(
+                    role="user" if m["role"] == "user" else "model",
+                    parts=[types.Part(text=m["content"])],
+                )
+                for m in messages if m["role"] in ("user", "assistant")
+            ]
+            resp = gclient.models.generate_content(
+                model=flash_model,
+                contents=history,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_msg,
+                    max_output_tokens=512,
+                    temperature=1.1,
+                ),
             )
-            return resp.choices[0].message.content or ""
+            return resp.text or ""
 
     # ── Public API ────────────────────────────────────────────────────────────
 
