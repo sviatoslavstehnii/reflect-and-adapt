@@ -30,7 +30,7 @@ approval_after_session_index: 2
 max_turns_per_session: 12
 
 # Silence timeout (seconds) to detect end-of-agent-turn via WebSocket
-turn_silence_timeout_s: 15
+turn_silence_timeout_s: 120
 
 # How long to wait for Cortex to complete after agent_end (seconds)
 cortex_poll_timeout_s: 90

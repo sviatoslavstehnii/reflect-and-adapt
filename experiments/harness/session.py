@@ -18,7 +18,20 @@ from .client import OpenClawClient
 from .metrics import get_last_cortex_run
 from .simulator import UserSimulator
 
+import re
+
 log = logging.getLogger(__name__)
+
+
+def _strip_agent_text(text: str) -> str:
+    """Remove internal markup from agent responses before passing to simulator."""
+    # Remove full <think>...</think> blocks
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+    # Remove stray <final> / </final> wrapper tags
+    text = re.sub(r"</?final>", "", text)
+    # Remove [[reply_to_current]] and similar internal directives
+    text = re.sub(r"\[\[.*?\]\]", "", text)
+    return text.strip()
 
 
 @dataclass
@@ -124,7 +137,10 @@ async def run_session(
             log.info(f"[{arm}/{scenario_id}] Agent: {agent_response[:100]}...")
 
             result.turns.append(Turn(1, opening, agent_response))
-            simulator.record_agent_response(agent_response)
+            agent_text = _strip_agent_text(agent_response)
+            simulator.record_agent_response(
+                agent_text or "(the agent is working on it — no visible reply yet)"
+            )
 
             # Subsequent turns
             for turn_n in range(2, max_turns + 1):
@@ -139,7 +155,10 @@ async def run_session(
                 log.info(f"[{arm}/{scenario_id}] Agent: {agent_response[:100]}...")
 
                 result.turns.append(Turn(turn_n, next_msg, agent_response))
-                simulator.record_agent_response(agent_response)
+                agent_text = _strip_agent_text(agent_response)
+                simulator.record_agent_response(
+                    agent_text or "(the agent is working on it — no visible reply yet)"
+                )
             else:
                 log.warning(f"[{arm}/{scenario_id}] Reached max_turns ({max_turns}) without completion.")
                 result.completed = True

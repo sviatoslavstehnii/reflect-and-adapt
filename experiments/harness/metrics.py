@@ -12,15 +12,23 @@ from pathlib import Path
 import pandas as pd
 
 
-def _db_path(openclaw_dir: str) -> Path:
-    base = Path(os.path.expanduser(openclaw_dir))
-    return base / "workspace" / ".openclaw" / "extensions" / "reflect-and-adapt" / "reflect.db"
+def _db_path(openclaw_dir: str) -> Path | None:
+    """Find reflect.db: try arm-specific dir first, then ~/.openclaw fallback."""
+    plugin_rel = Path("workspace") / ".openclaw" / "extensions" / "reflect-and-adapt" / "reflect.db"
+    candidates = [
+        Path(os.path.expanduser(openclaw_dir)) / plugin_rel,
+        Path.home() / ".openclaw" / plugin_rel,
+    ]
+    for p in candidates:
+        if p.exists():
+            return p
+    return None
 
 
 def get_scores(openclaw_dir: str, session_id: str | None = None) -> pd.DataFrame:
     """Return scores table as a DataFrame, optionally filtered by session_id prefix."""
     path = _db_path(openclaw_dir)
-    if not path.exists():
+    if path is None:
         return pd.DataFrame()
 
     conn = sqlite3.connect(path)
@@ -42,7 +50,7 @@ def get_scores(openclaw_dir: str, session_id: str | None = None) -> pd.DataFrame
 def get_last_cortex_run(openclaw_dir: str) -> str | None:
     """Return the ISO timestamp of lastCortexRun from the state table, or None."""
     path = _db_path(openclaw_dir)
-    if not path.exists():
+    if path is None:
         return None
 
     conn = sqlite3.connect(path)
@@ -58,7 +66,7 @@ def get_last_cortex_run(openclaw_dir: str) -> str | None:
 def get_proposals(openclaw_dir: str, status: str | None = None) -> pd.DataFrame:
     """Return proposals table, optionally filtered by status."""
     path = _db_path(openclaw_dir)
-    if not path.exists():
+    if path is None:
         return pd.DataFrame()
 
     conn = sqlite3.connect(path)

@@ -65,9 +65,11 @@ def helpfulness_over_sessions(df: pd.DataFrame) -> None:
 
 
 def metrics_summary(df: pd.DataFrame) -> None:
-    """Bar chart comparing treatment vs control on final 3 sessions."""
+    """Bar chart comparing treatment vs control on final 3 sessions (or all if fewer)."""
     late_sessions = SESSION_ORDER[-3:]
     late = df[df["session_num"].isin(late_sessions)]
+    if late.empty:
+        late = df  # fall back to all available sessions
 
     numeric_metrics = ["helpfulness", "conciseness", "task_completed", "response_accepted", "format_match"]
     available = [m for m in numeric_metrics if m in late.columns]
