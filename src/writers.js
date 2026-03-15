@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
+const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { z } = require('zod');
 
@@ -18,11 +18,14 @@ const SCHEMA = (() => {
   }
 })();
 
-const llm = new ChatGoogleGenerativeAI({
-  model: process.env.GOOGLE_MODEL || 'gemini-3-pro-preview',
-  apiKey: process.env.GOOGLE_API_KEY,
+const llm = new ChatOpenAI({
+  model: process.env.QWEN_MODEL || 'qwen-plus',
+  apiKey: process.env.QWEN_API_KEY,
+  configuration: {
+    baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+  },
   temperature: 0.1,
-  maxOutputTokens: 1500,
+  maxTokens: 1500,
   tags: ['cortex', 'writer'],
   metadata: { component: 'cortex-writer' },
 });

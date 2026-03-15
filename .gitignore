@@ -8,3 +8,5 @@ state.json
 reflect.db*
 memory.lance/
 .claude
+venv/
+__pycache__/

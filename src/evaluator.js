@@ -1,7 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: false });
 
-const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
+const { AzureChatOpenAI, ChatOpenAI } = require('@langchain/openai');
 const { z } = require('zod');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { Client } = require('langsmith');
@@ -15,16 +15,31 @@ const langsmithClient = process.env.LANGCHAIN_API_KEY &&
     ? new Client()
     : null;
 
-// ─── LLM Judge ───────────────────────────────────────────────────────────────
+// ─── LLM Judge (Azure OpenAI primary, Qwen fallback) ─────────────────────────
 
-const judgeLlm = new ChatGoogleGenerativeAI({
-    model: process.env.GOOGLE_MODEL_MINI || process.env.GOOGLE_MODEL || 'gemini-3-pro-preview',
-    apiKey: process.env.GOOGLE_API_KEY,
-    temperature: 0,
-    maxOutputTokens: 400,
-    tags: ['evaluator', 'llm-as-judge'],
-    metadata: { component: 'reflect-and-adapt-evaluator' },
-});
+function createJudgeLlm(provider = 'azure') {
+    if (provider === 'azure') {
+        return new AzureChatOpenAI({
+            azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+            azureOpenAIApiInstanceName: process.env.AZURE_OPENAI_INSTANCE_NAME,
+            azureOpenAIApiDeploymentName: process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4.1-mini',
+            azureOpenAIApiVersion: process.env.AZURE_OPENAI_API_VERSION || '2024-05-01-preview',
+            temperature: 0,
+            maxTokens: 400,
+            tags: ['evaluator', 'llm-as-judge'],
+            metadata: { component: 'reflect-and-adapt-evaluator' },
+        });
+    }
+    return new ChatOpenAI({
+        model: process.env.QWEN_MODEL || 'qwen-plus',
+        apiKey: process.env.QWEN_API_KEY,
+        configuration: { baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+        temperature: 0,
+        maxTokens: 400,
+        tags: ['evaluator', 'llm-as-judge'],
+        metadata: { component: 'reflect-and-adapt-evaluator' },
+    });
+}
 
 // ─── Evaluation Schema ────────────────────────────────────────────────────────
 
@@ -49,9 +64,21 @@ const EvaluationSchema = z.object({
         .describe('One sentence explaining the scores, citing specific evidence from the messages'),
 });
 
-const judgeWithStructuredOutput = judgeLlm.withStructuredOutput(EvaluationSchema, {
-    name: 'score_conversation_turn',
-});
+async function invokeJudge(messages, options) {
+    for (const provider of ['azure', 'qwen']) {
+        try {
+            const llm = createJudgeLlm(provider);
+            const judgeWithOutput = llm.withStructuredOutput(EvaluationSchema, { name: 'score_conversation_turn' });
+            return await judgeWithOutput.invoke(messages, options);
+        } catch (err) {
+            if (provider === 'azure') {
+                console.warn(`[evaluator] Azure OpenAI failed (${err.message}), falling back to Qwen...`);
+            } else {
+                throw err;
+            }
+        }
+    }
+}
 
 const JUDGE_SYSTEM = `You are an objective AI conversation quality evaluator.
 You receive one user message and the AI assistant's response.
@@ -109,7 +136,7 @@ async function evaluateTurn({ userMessage, assistantResponse, sessionId, turnTim
 
         const { callback: runCapture, getRunId } = makeRunCapture();
 
-        const scores = await judgeWithStructuredOutput.invoke(
+        const scores = await invokeJudge(
             [new SystemMessage(JUDGE_SYSTEM), new HumanMessage(judgePrompt)],
             {
                 runName: 'turn_evaluation',
