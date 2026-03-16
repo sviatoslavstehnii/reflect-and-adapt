@@ -222,18 +222,40 @@ def metrics_summary(df: pd.DataFrame) -> None:
     _save("metrics_summary.png")
 
 
+_current_plot_dir: Path = PLOTS_DIR
+
+
 def _save(filename: str) -> None:
-    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
-    path = PLOTS_DIR / filename
+    _current_plot_dir.mkdir(parents=True, exist_ok=True)
+    path = _current_plot_dir / filename
     plt.savefig(path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"Saved: {path}")
 
 
 def main() -> None:
+    global _current_plot_dir
     df = load()
     print(f"Loaded {len(df)} sessions. Personas: {sorted(df['persona'].unique())}")
 
+    personas = sorted(df["persona"].unique())
+    arms = sorted(df["arm"].unique())
+
+    # Per-persona per-arm plots
+    for persona in personas:
+        for arm in arms:
+            subset = df[(df["persona"] == persona) & (df["arm"] == arm)]
+            if subset.empty:
+                continue
+            _current_plot_dir = PLOTS_DIR / persona / arm
+            helpfulness_over_sessions(subset)
+            satisfaction_over_sessions(subset)
+            friction_over_sessions(subset)
+            turns_per_session(subset)
+            personalization_hit_rate(subset)
+
+    # Combined cross-arm comparison plots (all personas, both arms)
+    _current_plot_dir = PLOTS_DIR
     helpfulness_over_sessions(df)
     satisfaction_over_sessions(df)
     friction_over_sessions(df)

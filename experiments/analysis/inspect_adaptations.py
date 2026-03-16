@@ -65,7 +65,7 @@ def print_proposals(proposals: list[dict]) -> None:
     for p in proposals:
         by_status.setdefault(p["status"], []).append(p)
 
-    for status in ("APPROVED", "PENDING", "REJECTED"):
+    for status in ("APPROVED", "PRESENTED", "PENDING", "REJECTED"):
         group = by_status.get(status, [])
         if not group:
             continue
@@ -87,8 +87,10 @@ def list_snapshots(persona: str, arm: str = "adaptive") -> list[tuple[str, Path]
     base = RESULTS_DIR / "snapshots" / persona / arm
     if not base.exists():
         return []
-    found = {d.name: d for d in base.iterdir() if d.is_dir()}
-    return [(s, found[s]) for s in SESSION_ORDER if s in found]
+    # Dirs are named like s01_video_script — sort by s01/s02/... prefix
+    dirs = sorted([d for d in base.iterdir() if d.is_dir()],
+                  key=lambda d: d.name)
+    return [(d.name, d) for d in dirs]
 
 
 def print_file_evolution(persona: str, arm: str, show_diff: bool) -> None:
@@ -153,23 +155,45 @@ def print_file_evolution(persona: str, arm: str, show_diff: bool) -> None:
 
 
 def print_memory_growth(persona: str, arm: str) -> None:
-    """Show how MEMORY.md grew across sessions."""
+    """Show how MEMORY.md and LanceDB vector memory grew across sessions."""
     snapshots = list_snapshots(persona, arm)
     if not snapshots:
         return
 
-    print()
+    # MEMORY.md growth
+    print("\n  MEMORY.md lines:")
     prev_count = 0
     for scenario_id, snap_dir in snapshots:
         mem = snap_dir / "MEMORY.md"
         if not mem.exists():
             continue
-        content = mem.read_text()
-        lines = [l for l in content.splitlines() if l.strip() and not l.startswith("#")]
+        lines = [l for l in mem.read_text().splitlines() if l.strip() and not l.startswith("#")]
         count = len(lines)
-        delta = f"+{count - prev_count}" if count > prev_count else ("=" if count == prev_count else str(count - prev_count))
-        print(f"  {scenario_id}: {count} memory lines  ({delta})")
+        delta = f"+{count - prev_count}" if count > prev_count else ("=" if count == prev_count else f"{count - prev_count}")
+        print(f"    {scenario_id}: {count} lines  ({delta})")
         prev_count = count
+
+    # LanceDB memory entries
+    print("\n  Vector memory entries (memory.lance):")
+    prev_ids: set[str] = set()
+    for scenario_id, snap_dir in snapshots:
+        mem_json = snap_dir / "memories.json"
+        if not mem_json.exists():
+            continue
+        import json
+        entries = json.loads(mem_json.read_text())
+        current_ids = {e["id"] for e in entries}
+        new_entries = [e for e in entries if e["id"] not in prev_ids]
+
+        by_type: dict[str, int] = {}
+        for e in entries:
+            by_type[e["type"]] = by_type.get(e["type"], 0) + 1
+        type_summary = ", ".join(f"{t}:{n}" for t, n in sorted(by_type.items()))
+
+        print(f"    {scenario_id}: {len(entries)} total  (+{len(new_entries)} new)  [{type_summary}]")
+        for e in new_entries:
+            print(f"      [{e['type']}] {e['content'][:100]}")
+        prev_ids = current_ids
 
 
 def run(persona_filter: str | None, show_diff: bool) -> None:
@@ -188,13 +212,19 @@ def run(persona_filter: str | None, show_diff: bool) -> None:
 
     # Global proposals (all sessions, adaptive arm)
     proposals = load_proposals()
-    approved = [p for p in proposals if p["status"] == "APPROVED"]
-    pending = [p for p in proposals if p["status"] == "PENDING"]
+    approved   = [p for p in proposals if p["status"] == "APPROVED"]
+    presented  = [p for p in proposals if p["status"] == "PRESENTED"]
+    pending    = [p for p in proposals if p["status"] == "PENDING"]
+    rejected   = [p for p in proposals if p["status"] == "REJECTED"]
+    stale      = [p for p in proposals if p["status"] == "STALE"]
 
     print(f"\n── Proposals summary ──")
     print(f"  Total generated : {len(proposals)}")
     print(f"  Approved        : {len(approved)}")
+    print(f"  Presented (applied, awaiting approve cmd) : {len(presented)}")
     print(f"  Still pending   : {len(pending)}")
+    print(f"  Rejected        : {len(rejected)}")
+    print(f"  Stale (superseded): {len(stale)}")
     print_proposals(proposals)
 
     for persona in personas:

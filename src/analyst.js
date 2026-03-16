@@ -1,22 +1,50 @@
 const path = require('path');
 const { ChatOpenAI } = require('@langchain/openai');
+const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { z } = require('zod');
 const db = require('./db');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: false });
 
-const llm = new ChatOpenAI({
-  model: process.env.QWEN_MODEL || 'qwen-plus',
-  apiKey: process.env.QWEN_API_KEY,
-  configuration: {
-    baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-  },
-  temperature: 0,
-  maxTokens: 2000,
-  tags: ['cortex', 'analyst'],
-  metadata: { component: 'cortex-analyst' },
-});
+function createCortexLlms(maxTokens, tags, metadata) {
+  const qwen = new ChatOpenAI({
+    model: process.env.QWEN_MODEL || 'qwen-plus',
+    apiKey: process.env.QWEN_API_KEY,
+    configuration: { baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+    temperature: 0,
+    maxTokens,
+    tags,
+    metadata,
+  });
+  const flash = new ChatGoogleGenerativeAI({
+    model: process.env.GOOGLE_MODEL_FLASH || 'gemini-3-flash-preview',
+    apiKey: process.env.GOOGLE_API_KEY,
+    temperature: 0,
+    maxOutputTokens: maxTokens,
+    tags,
+    metadata,
+  });
+  const geminiFirst = (process.env.CORTEX_PROVIDER || 'qwen') === 'gemini';
+  return geminiFirst
+    ? [{ llm: flash, name: 'Gemini Flash' }, { llm: qwen, name: 'Qwen' }]
+    : [{ llm: qwen, name: 'Qwen' }, { llm: flash, name: 'Gemini Flash' }];
+}
+
+async function invokeStructured(schema, name, messages, options) {
+  const providers = createCortexLlms(8000, ['cortex', 'analyst'], { component: 'cortex-analyst' });
+  for (const [i, { llm, name: providerName }] of providers.entries()) {
+    try {
+      return await llm.withStructuredOutput(schema, { name }).invoke(messages, options);
+    } catch (err) {
+      if (i < providers.length - 1) {
+        console.warn(`[Analyst] ${providerName} failed (${err.message}), falling back to ${providers[i + 1].name}...`);
+      } else {
+        throw err;
+      }
+    }
+  }
+}
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -42,9 +70,6 @@ const AnalystOutputSchema = z.object({
   analysis_notes: z.string().describe('1-2 sentences on overall session quality or notable meta-observations'),
 });
 
-const analystWithOutput = llm.withStructuredOutput(AnalystOutputSchema, {
-  name: 'extract_findings',
-});
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
 
@@ -118,7 +143,8 @@ async function runAnalyst({ numTurns = 40 } = {}) {
     return `[${ts}][${t.session_id}] ${t.role.toUpperCase()}: ${text}`;
   }).join('\n');
 
-  const result = await analystWithOutput.invoke(
+  const result = await invokeStructured(
+    AnalystOutputSchema, 'extract_findings',
     [new SystemMessage(SYSTEM), new HumanMessage(`${healthBlock}\n\n---\n\n${turnsBlock}`)],
     { runName: 'cortex_analyst', tags: ['cortex', 'analyst'] }
   );

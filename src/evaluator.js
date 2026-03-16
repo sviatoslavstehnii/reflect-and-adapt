@@ -1,7 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: false });
 
-const { AzureChatOpenAI, ChatOpenAI } = require('@langchain/openai');
+const { AzureChatOpenAI } = require('@langchain/openai');
 const { z } = require('zod');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { Client } = require('langsmith');
@@ -30,12 +30,12 @@ function createJudgeLlm(provider = 'azure') {
             metadata: { component: 'reflect-and-adapt-evaluator' },
         });
     }
-    return new ChatOpenAI({
-        model: process.env.QWEN_MODEL || 'qwen-plus',
-        apiKey: process.env.QWEN_API_KEY,
-        configuration: { baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+    const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
+    return new ChatGoogleGenerativeAI({
+        model: process.env.GOOGLE_MODEL_FLASH || 'gemini-3-flash-preview',
+        apiKey: process.env.GOOGLE_API_KEY,
         temperature: 0,
-        maxTokens: 400,
+        maxOutputTokens: 400,
         tags: ['evaluator', 'llm-as-judge'],
         metadata: { component: 'reflect-and-adapt-evaluator' },
     });
@@ -60,6 +60,8 @@ const EvaluationSchema = z.object({
         .describe('True if the user accepted and acted on the response vs. ignoring or pushing back'),
     format_match: z.boolean()
         .describe('True if the response format matched what the user implicitly expected'),
+    personalization_hit: z.boolean()
+        .describe('True if the assistant demonstrated knowledge of this user\'s preferences, style, domain, or prior context WITHOUT being explicitly told in this user message (e.g. using their preferred format unprompted, referencing their role, adapting tone to their known communication style)'),
     reasoning: z.string()
         .describe('One sentence explaining the scores, citing specific evidence from the messages'),
 });
@@ -87,7 +89,8 @@ Be strict and evidence-based — only score on what is explicitly present in the
 Do not assume positive intent or satisfaction unless the user explicitly signals it.
 For user_satisfaction: positive requires explicit approval or enthusiasm; negative requires explicit displeasure; default to neutral when ambiguous.
 For format_match: infer expected format from the user's message style and intent.
-For conciseness: penalise both over-explanation and under-explanation equally.`;
+For conciseness: penalise both over-explanation and under-explanation equally.
+For personalization_hit: set True only if the assistant unprompted used user-specific knowledge (name, role, preferred format, communication style, known context) that was NOT stated in this turn's user message.`;
 
 // ─── Run ID Capture ───────────────────────────────────────────────────────────
 
@@ -116,6 +119,7 @@ async function submitFeedback(runId, scores) {
             langsmithClient.createFeedback(runId, 'user_satisfaction', { score: satisfactionScore[scores.user_satisfaction] }),
             langsmithClient.createFeedback(runId, 'response_accepted', { score: scores.response_accepted ? 1 : 0 }),
             langsmithClient.createFeedback(runId, 'format_match', { score: scores.format_match ? 1 : 0 }),
+            langsmithClient.createFeedback(runId, 'personalization_hit', { score: scores.personalization_hit ? 1 : 0 }),
         ]);
         console.log(`[evaluator] Feedback submitted to LangSmith (run: ${runId})`);
     } catch (err) {
@@ -153,8 +157,8 @@ async function evaluateTurn({ userMessage, assistantResponse, sessionId, turnTim
             INSERT INTO scores
               (session_id, turn_timestamp, langsmith_run_id, helpfulness, conciseness,
                correction_signal, frustration_signal, task_completed,
-               user_satisfaction, response_accepted, format_match, reasoning)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               user_satisfaction, response_accepted, format_match, personalization_hit, reasoning)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             sessionId || 'unknown',
             turnTimestamp || new Date().toISOString(),
@@ -167,6 +171,7 @@ async function evaluateTurn({ userMessage, assistantResponse, sessionId, turnTim
             scores.user_satisfaction,
             scores.response_accepted ? 1 : 0,
             scores.format_match ? 1 : 0,
+            scores.personalization_hit ? 1 : 0,
             scores.reasoning,
         );
 

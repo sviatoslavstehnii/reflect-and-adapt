@@ -1,7 +1,7 @@
 # Experiment Status — Reflect & Adapt Plugin
 
 **Thesis:** *Adaptive AI Agent: Structural and Behavioral Adaptation Driven by User Interaction*
-**Date:** 2026-03-15
+**Last updated:** 2026-03-16
 
 ---
 
@@ -66,18 +66,65 @@ Personas: `sofia` (content creator), `marcus` (SaaS founder), `aisha` (junior de
 - [x] Session aggregates: `satisfaction_score`, `correction_rate`, `frustration_rate`, `turns_per_session`, `personalization_hit` rate
 - [x] `plot.py` generates 6 charts: helpfulness, satisfaction, friction, turns-per-session, personalization hit rate, metrics summary
 
-### Early Results (sofia adaptive only, s01–s03)
+### Run 1 — sofia adaptive only, s01–s03 (earlier partial run)
 - Helpfulness trend: **3.48 → 3.68 → 3.86** (steady increase across sessions)
 - Confirmed adaptation signal: agent referenced "Cosy Spring pivot" and Sofia's posting cadence in s03 without being told
 - Proposals applied: vibe, content format, user profile
+
+### Run 2 — sofia adaptive only, s01–s06 (2026-03-16, complete) ✅
+
+**Command:** `python run_experiment.py --personas sofia --arms adaptive --max-scenarios 6`
+**Model:** `google/gemini-3-pro-preview` (agent + approval), Azure GPT-4.1 (user simulator)
+**Total turns:** 38 across 6 sessions
+**Avg helpfulness:** 2.94/5 (single-arm, no baseline comparison yet)
+
+#### Proposals — 11 generated, 11 approved (100%)
+
+All proposals were applied in the same run via the approval session. No rejections or stale proposals.
+
+| Session | File | Change |
+|---------|------|--------|
+| s01 | — | No proposals (Cortex skipped — approval only kicks in from s03) |
+| s02 | — | Cortex ran, no new proposals (router deduplication) |
+| s03 | `USER.md` | Added profession: Content Creator, videos about workflow and AI tools |
+| s03 | `IDENTITY.md` | Vibe set to "Cosy, Sunday morning conversational tone, like chatting with a friend" |
+| s03 | `AGENTS.md` | Scriptwriting rule: integrate natural pauses and sensory B-roll cues (*coffee steaming*, *scribbles*, *sunlight*) |
+| s03 | `SOUL.md` | Vibe rule: lean into story-driven narrative; avoid listicle or bulleted style |
+| s04 | `USER.md` | Brand aesthetic: Cozy, earthy, and warm-toned; platform: YouTube; content format: short-form video |
+| s04 | `IDENTITY.md` | Vibe refined: "Bright, warm, cozy Sunday morning with gentle shadows; avoids dark/high-contrast/moody tones" |
+| s04 | `AGENTS.md` | Design tool rule: prioritize Canva-compatible instructions for thumbnail/visual work |
+| s04 | `SOUL.md` | Boundary added: check reference files for brand constraints before suggesting new designs |
+| s05 | — | No new proposals (router correctly saw all files already adapted) |
+| s05 | `USER.md` | Platform + content format confirmed |
+| s05 | `IDENTITY.md` | Vibe locked: "Cozy Sunday morning; warm and conversational, avoiding corporate or YouTube Guru tones" |
+| s05 | `AGENTS.md` | Video description rule: 150–300 words, max 3–5 hashtags |
+| s06 | — | No new proposals (workspace fully adapted, router had nothing to route) |
+
+**Vector memory entries:** 2 entries written to `memory.lance`
+- `[preference]` User creates moodboards for clients and prefers specific, relatable anecdotes in content
+- `[context]` Sofia Reyes developing CapCut AI video; needs thumbnail concepts based on reference images
+
+**File evolution by session:**
+- `s01` → initial state (all files at template defaults)
+- `s02` → no changes (Cortex ran but 0 proposals)
+- `s03` → IDENTITY.md, USER.md, AGENTS.md, SOUL.md all updated
+- `s04` → IDENTITY.md, USER.md, AGENTS.md refined further
+- `s05` → no changes (router deduped everything)
+- `s06` → no changes (workspace fully stable)
+
+**Key qualitative observation:** By s05–s06 the agent spontaneously used language like "Sunday morning vibe", referenced "Behind the Canvas" as a series concept, and suggested cozy/earthy aesthetics — without being prompted. The workspace had absorbed Sofia's brand identity structurally.
+
+#### Bugs fixed during/after this run
+- `collect.py` was reading from `~/.openclaw` (shared) instead of each arm's isolated DB → stale data from previous partial runs appeared in sessions.csv, causing plots to show only 4 scenarios. Fixed: now reads from `arm_cfg["openclaw_dir"]` per arm.
+- `src/cortex.js` in arm-specific copy was missing `latestSessionId` lookup → memory entries had `source_session: "unknown"`. Fixed: `reset_workspace_for_persona` now syncs `src/` from shared source before each run.
 
 ---
 
 ## Known Issues / Blockers
 
-- **Fix 2 (approval model) — pending until tomorrow**: `gemini-3-flash` wraps response in `<final>` without using file tools — approval only works reliably with `gemini-3-pro-preview`. Quota exhausted today (~6 requests/day). Must set `gemini-3-pro-preview` as primary model in `~/.openclaw-adaptive/openclaw.json` before running the full experiment.
-- **Baseline arm has 0 data** — never ran successfully. Auth and plugin-load issues are now fixed, but it has never actually been run end-to-end.
+- **Baseline arm has 0 data** — has never been run. Both gateways need to be running and `--arms baseline` passed to `run_experiment.py`. Once baseline data exists, adaptive vs baseline comparison charts will populate.
 - **Both gateways must be running** before `run_experiment.py` is invoked — they are not auto-started by the harness.
+- **Approval session after s01/s02** — Cortex skips approval for the first two sessions (`approval_after_session_index: 2` in `experiment.yaml`). This means s01 and s02 snapshots always show the initial template state. First adaptations appear in s03 snapshot.
 
 ---
 
@@ -85,10 +132,7 @@ Personas: `sofia` (content creator), `marcus` (SaaS founder), `aisha` (junior de
 
 ### Prerequisites (one-time, before starting)
 
-- [ ] **Fix 2**: Set `gemini-3-pro-preview` as primary model in `~/.openclaw-adaptive/openclaw.json`
-  ```json
-  "model": { "primary": "google/gemini-3-pro-preview" }
-  ```
+- [x] **gemini-3-pro-preview** set as primary model in `~/.openclaw-adaptive/openclaw.json` — needed for approval sessions to edit files correctly (flash model wraps response without using tools)
 - [ ] Re-run `setup_workspaces.sh --reset` to rebuild both arm dirs with correct workspace paths
   ```bash
   bash experiments/setup_workspaces.sh --reset
@@ -118,8 +162,10 @@ openclaw --profile adaptive gateway --port 3101 --allow-unconfigured
 
 ```bash
 cd /home/sviatoslav/.openclaw/workspace/.openclaw/extensions/reflect-and-adapt/experiments
-source .venv/bin/activate
+source venv/bin/activate
 python run_experiment.py --personas sofia --arms baseline adaptive
+# or limit to N scenarios for a partial run:
+python run_experiment.py --personas sofia --arms adaptive --max-scenarios 6
 ```
 
 Expected: ~20 sessions (10 baseline + 10 adaptive), each 6–12 turns. After each adaptive session, Cortex runs and an approval session edits the workspace files.

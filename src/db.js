@@ -55,5 +55,6 @@ db.exec(`
 // Migrations
 try { db.exec(`ALTER TABLE proposals ADD COLUMN rejection_reason TEXT`); } catch { /* exists */ }
 try { db.exec(`ALTER TABLE proposals ADD COLUMN presented_at TEXT`); } catch { /* exists */ }
+try { db.exec(`ALTER TABLE scores ADD COLUMN personalization_hit INTEGER`); } catch { /* exists */ }
 
 module.exports = db;

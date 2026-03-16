@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { ChatOpenAI } = require('@langchain/openai');
+const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { z } = require('zod');
 
@@ -18,17 +19,44 @@ const SCHEMA = (() => {
   }
 })();
 
-const llm = new ChatOpenAI({
-  model: process.env.QWEN_MODEL || 'qwen-plus',
-  apiKey: process.env.QWEN_API_KEY,
-  configuration: {
-    baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-  },
-  temperature: 0.1,
-  maxTokens: 1500,
-  tags: ['cortex', 'writer'],
-  metadata: { component: 'cortex-writer' },
-});
+function createCortexLlms(maxTokens, tags, metadata) {
+  const qwen = new ChatOpenAI({
+    model: process.env.QWEN_MODEL || 'qwen-plus',
+    apiKey: process.env.QWEN_API_KEY,
+    configuration: { baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+    temperature: 0.1,
+    maxTokens,
+    tags,
+    metadata,
+  });
+  const flash = new ChatGoogleGenerativeAI({
+    model: process.env.GOOGLE_MODEL_FLASH || 'gemini-3-flash-preview',
+    apiKey: process.env.GOOGLE_API_KEY,
+    temperature: 0.1,
+    maxOutputTokens: maxTokens,
+    tags,
+    metadata,
+  });
+  const geminiFirst = (process.env.CORTEX_PROVIDER || 'qwen') === 'gemini';
+  return geminiFirst
+    ? [{ llm: flash, name: 'Gemini Flash' }, { llm: qwen, name: 'Qwen' }]
+    : [{ llm: qwen, name: 'Qwen' }, { llm: flash, name: 'Gemini Flash' }];
+}
+
+async function invokeStructured(schema, name, messages, options) {
+  const providers = createCortexLlms(4000, ['cortex', 'writer'], { component: 'cortex-writer' });
+  for (const [i, { llm, name: providerName }] of providers.entries()) {
+    try {
+      return await llm.withStructuredOutput(schema, { name }).invoke(messages, options);
+    } catch (err) {
+      if (i < providers.length - 1) {
+        console.warn(`[Writer] ${providerName} failed (${err.message}), falling back to ${providers[i + 1].name}...`);
+      } else {
+        throw err;
+      }
+    }
+  }
+}
 
 // ─── Output Schemas ───────────────────────────────────────────────────────────
 
@@ -50,8 +78,6 @@ const SkillProposalOutputSchema = z.object({
   skip_reason: z.string().optional(),
 });
 
-const proposalWriter = llm.withStructuredOutput(ProposalOutputSchema, { name: 'write_proposal' });
-const skillWriter = llm.withStructuredOutput(SkillProposalOutputSchema, { name: 'write_skill_proposal' });
 
 // ─── File-specific writer instructions ───────────────────────────────────────
 
@@ -152,7 +178,8 @@ async function writeFileProposal(routedFinding) {
     `Current ${targetFile} content:\n\`\`\`\n${fileContent || '(empty)'}\n\`\`\`\n\n` +
     `Generate the exact change to make to ${targetFile}.`;
 
-  const result = await proposalWriter.invoke(
+  const result = await invokeStructured(
+    ProposalOutputSchema, 'write_proposal',
     [new SystemMessage(systemPrompt), new HumanMessage(userMessage)],
     { runName: `cortex_writer_${targetFile.replace(/[^a-z]/gi, '_')}`, tags: ['cortex', 'writer'] }
   );
@@ -198,7 +225,8 @@ async function writeSkillProposal(routedFinding) {
     `Supporting observations:\n${buildEvidenceBlock(evidence)}\n\n` +
     `Write a SKILL.md that documents the procedure for handling this workflow.`;
 
-  const result = await skillWriter.invoke(
+  const result = await invokeStructured(
+    SkillProposalOutputSchema, 'write_skill_proposal',
     [new SystemMessage(systemPrompt), new HumanMessage(userMessage)],
     { runName: 'cortex_writer_skill', tags: ['cortex', 'writer', 'skill'] }
   );

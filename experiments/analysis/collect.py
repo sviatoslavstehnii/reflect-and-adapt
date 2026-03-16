@@ -50,15 +50,18 @@ def main() -> None:
     RESULTS_DIR.mkdir(exist_ok=True)
 
     frames = []
-    shared_dir = os.path.expanduser("~/.openclaw")
-    df_all = get_scores(shared_dir, session_id="agent:main:exp-")
-    if df_all.empty:
-        print("No experiment scores found.")
-        return
-
     for arm_name, arm_cfg in arms_config.items():
+        arm_dir = os.path.expanduser(arm_cfg["openclaw_dir"])
+        df = get_scores(arm_dir, session_id="agent:main:exp-")
+        if df.empty:
+            print(f"[{arm_name}] No scores found.")
+            continue
+        # Filter to only this arm's sessions (exclude approval sessions)
         arm_prefix = arm_name[:4]  # "base" or "adap"
-        df = df_all[df_all["session_id"].str.contains(f"-{arm_prefix}-", regex=False)].copy()
+        df = df[
+            df["session_id"].str.contains(f"-{arm_prefix}-", regex=False) &
+            ~df["session_id"].str.contains("-approval-", regex=False)
+        ].copy()
         if df.empty:
             print(f"[{arm_name}] No scores found.")
             continue

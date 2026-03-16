@@ -1,0 +1,16 @@
+[
+  {
+    "id": "mem-1773690040447-9229",
+    "content": "User creates moodboards for clients and prefers the inclusion of specific, relatable anecdotes in communication.",
+    "type": "preference",
+    "source_session": "agent:main:exp-sofia-adap-s01_video_script-5af13122",
+    "created_at": "2026-03-16T19:40:40.447Z"
+  },
+  {
+    "id": "mem-1773690411062-b4vi",
+    "content": "Sofia Reyes is developing a CapCut AI video and needs thumbnail concepts based on reference images located in the data folder.",
+    "type": "context",
+    "source_session": "agent:main:exp-sofia-adap-s03_thumbnail_concepts-1503b042",
+    "created_at": "2026-03-16T19:46:51.062Z"
+  }
+]

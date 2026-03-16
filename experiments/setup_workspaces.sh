@@ -29,7 +29,7 @@ patch_openclaw_json() {
   local CONFIG="$DIR/openclaw.json"
   local ARM_WORKSPACE="$HOME/.openclaw-${ARM_NAME}/workspace"
   # Shared plugin source stays in the main workspace (source of truth for plugin code)
-  local PLUGIN_PATHS='["/home/'"$USER"'/.openclaw/workspace/.openclaw/extensions"]'
+  local PLUGIN_PATHS='["/home/'"$USER"'/.openclaw-'"$NAME"'/workspace/.openclaw/extensions"]'
 
   python3 - "$CONFIG" "$ARM_WORKSPACE" "$PLUGIN_PATHS" <<'PYEOF'
 import json, sys

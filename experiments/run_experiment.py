@@ -52,7 +52,7 @@ def load_persona(persona_id: str) -> dict:
     return data
 
 
-def load_scenarios(persona_id: str, filter_scenario: str | None = None) -> list[dict]:
+def load_scenarios(persona_id: str, filter_scenario: str | None = None, max_scenarios: int | None = None) -> list[dict]:
     """Load all scenario.yaml files for a persona, sorted by scenario ID."""
     persona_scenarios_dir = SCENARIOS_DIR / persona_id
     if not persona_scenarios_dir.exists():
@@ -73,6 +73,9 @@ def load_scenarios(persona_id: str, filter_scenario: str | None = None) -> list[
     if not scenarios:
         raise ValueError(f"No scenarios found for persona: {persona_id}")
 
+    if max_scenarios:
+        scenarios = scenarios[:max_scenarios]
+
     return scenarios
 
 
@@ -82,10 +85,11 @@ async def run_persona(
     selected_arms: list[str],
     experiment_config: dict,
     filter_scenario: str | None,
+    max_scenarios: int | None,
     dry_run: bool,
 ) -> None:
     persona = load_persona(persona_id)
-    scenarios = load_scenarios(persona_id, filter_scenario)
+    scenarios = load_scenarios(persona_id, filter_scenario, max_scenarios)
     scenarios_base_dir = SCENARIOS_DIR / persona_id
 
     log.info(f"Persona: {persona_id} | Scenarios: {len(scenarios)} | Arms: {selected_arms}")
@@ -155,6 +159,7 @@ async def main(args: argparse.Namespace) -> None:
             selected_arms=selected_arms,
             experiment_config=experiment_config,
             filter_scenario=args.scenario,
+            max_scenarios=args.max_scenarios,
             dry_run=args.dry_run,
         )
 
@@ -178,6 +183,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--scenario", metavar="SCENARIO_ID",
         help="Run only scenarios matching this prefix (e.g. s01_video_script)"
+    )
+    parser.add_argument(
+        "--max-scenarios", type=int, metavar="N", dest="max_scenarios",
+        help="Run only the first N scenarios (e.g. --max-scenarios 4 runs s01–s04)"
     )
     parser.add_argument(
         "--dry-run", action="store_true",

@@ -69,12 +69,17 @@ async function runCortexCycle() {
   const proposalFindings = routed.filter(f => f.proposalType !== 'memory_entry');
 
   // Stage 3 — Run file writers and memory writer in parallel
+  const latestSessionRow = db.prepare(
+    `SELECT session_id FROM conversations ORDER BY id DESC LIMIT 1`
+  ).get();
+  const latestSessionId = latestSessionRow ? latestSessionRow.session_id : 'unknown';
+
   const [proposals, memoriesSaved] = await Promise.all([
     proposalFindings.length > 0
       ? writeProposals(proposalFindings)
       : Promise.resolve([]),
     memoryFindings.length > 0
-      ? writeMemoryEntries(memoryFindings).catch(err => {
+      ? writeMemoryEntries(memoryFindings, { sessionId: latestSessionId }).catch(err => {
           console.warn(`[Cortex] Memory writer failed: ${err.message}`);
           return 0;
         })

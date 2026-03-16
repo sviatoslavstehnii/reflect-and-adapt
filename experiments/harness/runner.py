@@ -35,10 +35,10 @@ class ArmResult:
     sessions: list[SessionResult] = field(default_factory=list)
 
 
-WORKSPACE_TEMPLATES = Path(__file__).resolve().parents[2] / "config" / "workspace"
+WORKSPACE_TEMPLATES = Path(__file__).resolve().parents[1] / "config" / "workspace"
 
 
-def reset_workspace_for_persona(persona_id: str, openclaw_dir: str) -> None:
+def reset_workspace_for_persona(persona_id: str, openclaw_dir: str, arm: str = "adaptive") -> None:
     """
     Reset the arm's openclaw workspace to a clean per-persona state before
     the first session. Copies default IDENTITY/SOUL/AGENTS and persona USER.md,
@@ -89,6 +89,59 @@ def reset_workspace_for_persona(persona_id: str, openclaw_dir: str) -> None:
             f.unlink()
         log.info("[reset] Daily memory files cleared")
 
+    # Clear skills except manage-proposals (which is required for approval sessions)
+    skills_dir = workspace / "skills"
+    if skills_dir.exists():
+        for entry in skills_dir.iterdir():
+            if entry.name == "proposals":
+                continue  # keep manage-proposals skill
+            if entry.is_dir():
+                shutil.rmtree(entry)
+            else:
+                entry.unlink()
+        log.info("[reset] Skills cleared (manage-proposals kept)")
+
+    # Clear stale snapshots for this persona+arm so previous run data doesn't bleed through
+    snapshot_dir = RESULTS_DIR / "snapshots" / persona_id / arm
+    if snapshot_dir.exists():
+        shutil.rmtree(snapshot_dir)
+        log.info(f"[reset] Snapshots cleared for {persona_id}/{arm}")
+
+    # Plugin dir — used for reflect.db and memory.lance
+    plugin_dir = (
+        Path(os.path.expanduser(openclaw_dir))
+        / "workspace" / ".openclaw" / "extensions" / "reflect-and-adapt"
+    )
+
+    # Clear reflect.db (proposals, scores, conversations) so stale proposals don't block the router
+    reflect_db = plugin_dir / "reflect.db"
+    if reflect_db.exists():
+        try:
+            conn = sqlite3.connect(str(reflect_db))
+            conn.execute("DELETE FROM proposals")
+            conn.execute("DELETE FROM scores")
+            conn.execute("DELETE FROM conversations")
+            conn.commit()
+            conn.close()
+            log.info("[reset] reflect.db cleared (proposals, scores, conversations)")
+        except Exception as e:
+            log.warning(f"[reset] Could not clear reflect.db: {e}")
+
+    # Clear LanceDB vector memory (memory.lance in the arm's plugin dir)
+    lance_db = plugin_dir / "memory.lance"
+    if lance_db.exists():
+        shutil.rmtree(lance_db)
+        log.info("[reset] memory.lance cleared")
+
+    # Sync plugin src/ from shared source so arm always runs latest code
+    shared_plugin_src = Path.home() / ".openclaw" / "workspace" / ".openclaw" / "extensions" / "reflect-and-adapt" / "src"
+    arm_plugin_src = plugin_dir / "src"
+    if shared_plugin_src.exists():
+        if arm_plugin_src.exists():
+            shutil.rmtree(arm_plugin_src)
+        shutil.copytree(shared_plugin_src, arm_plugin_src)
+        log.info("[reset] Plugin src/ synced from shared source")
+
     log.info(f"[reset] Workspace ready for persona: {persona_id}")
 
 
@@ -126,6 +179,23 @@ async def _run_cortex(openclaw_dir: str) -> None:
         log.warning(f"[Cortex] Failed: {e}")
 
 
+def _approve_presented_proposals(openclaw_dir: str) -> int:
+    """Mark all PRESENTED proposals as APPROVED after the approval session completes."""
+    db_path = (
+        Path(os.path.expanduser(openclaw_dir))
+        / "workspace" / ".openclaw" / "extensions" / "reflect-and-adapt" / "reflect.db"
+    )
+    if not db_path.exists():
+        return 0
+    conn = sqlite3.connect(str(db_path))
+    count = conn.execute(
+        "UPDATE proposals SET status='APPROVED' WHERE status='PRESENTED'"
+    ).rowcount
+    conn.commit()
+    conn.close()
+    return count
+
+
 def _get_pending_proposals(openclaw_dir: str) -> list[dict]:
     """Read all PENDING proposals from the adaptive arm's DB."""
     db_path = (
@@ -151,21 +221,24 @@ def _build_approval_prompt(proposals: list[dict], openclaw_dir: str) -> str:
     workspace = Path(os.path.expanduser(openclaw_dir)) / "workspace"
     lines = [
         "You have workspace adaptation proposals to apply. "
-        "Use your file editing tools to make each change NOW — do not just describe what you would do.\n"
+        "For each proposal: (1) edit the file, then (2) run the approve command. Do both steps.\n"
     ]
     for i, p in enumerate(proposals, 1):
         target = workspace / p["file"]
         current = target.read_text().strip() if target.exists() else "(file does not exist — create it)"
-        lines.append(f"## Proposal {i}: {p['file']} [{p['type']}]")
+        lines.append(f"## Proposal {i} (id: {p['id']}): {p['file']} [{p['type']}]")
         lines.append(f"Rationale: {p['rationale']}\n")
         lines.append(f"Change to apply:\n{p['change']}\n")
         lines.append(f"Current file content:\n```\n{current}\n```\n")
-        lines.append(f"Action: Edit `{p['file']}` to incorporate the change above. "
-                     f"If it's an addition, append it. If it updates existing content, replace the relevant section.\n")
+        lines.append(
+            f"Steps:\n"
+            f"1. Edit `{p['file']}` to incorporate the change above.\n"
+            f"2. Run: node skills/proposals/manage-proposals.js approve {p['id']}\n"
+        )
 
     lines.append(
-        "Work through each proposal in order. "
-        "After editing all files, reply with exactly: "
+        "Work through each proposal in order — edit the file, then approve it before moving to the next. "
+        "After all are done, reply with exactly: "
         "'Done. Applied: " + ", ".join(p['file'] for p in proposals) + "'"
     )
     return "\n".join(lines)
@@ -187,13 +260,37 @@ def _snapshot_workspace(persona_id: str, arm: str, scenario_id: str, openclaw_di
         if src.exists():
             shutil.copy2(src, snapshot_dir / fname)
 
-    # Also snapshot the skills directory if any new skills were added
+    # Snapshot skills directory if any new skills were added
     skills_dir = workspace / "skills"
     if skills_dir.exists():
         skills_snapshot = snapshot_dir / "skills"
         if skills_snapshot.exists():
             shutil.rmtree(skills_snapshot)
         shutil.copytree(skills_dir, skills_snapshot)
+
+    # Dump LanceDB memory entries to JSON — filtered to this arm's session prefix
+    # memory.lance lives inside the arm's own plugin dir (not the shared source)
+    plugin_dir = (
+        Path(os.path.expanduser(openclaw_dir))
+        / "workspace" / ".openclaw" / "extensions" / "reflect-and-adapt"
+    )
+    dump_script = plugin_dir / "src" / "dump-memories.js"
+    if dump_script.exists():
+        session_prefix = f"agent:main:exp-{persona_id}-{arm[:4]}"
+        try:
+            result = subprocess.run(
+                ["node", str(dump_script), "--session-prefix", session_prefix],
+                cwd=str(plugin_dir),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode == 0:
+                (snapshot_dir / "memories.json").write_text(result.stdout)
+            else:
+                log.warning(f"[snapshot] dump-memories.js error: {result.stderr[:200]}")
+        except Exception as e:
+            log.warning(f"[snapshot] Could not dump memories: {e}")
 
     log.info(f"[snapshot] Workspace state saved → {snapshot_dir.relative_to(RESULTS_DIR.parent)}")
 
@@ -226,7 +323,7 @@ async def run_arm(
     approval_after = config.get("approval_after_session_index", 2)  # 0-based → after S3
 
     if not dry_run:
-        reset_workspace_for_persona(persona_id, openclaw_dir)
+        reset_workspace_for_persona(persona_id, openclaw_dir, arm)
 
     for i, scenario in enumerate(scenarios):
         scenario_id = scenario["id"]
@@ -269,9 +366,14 @@ async def run_arm(
                     approval_prompt=approval_prompt,
                     silence_timeout_s=config.get("turn_silence_timeout_s", 15.0),
                 )
-                _snapshot_workspace(persona_id, arm, scenario_id, openclaw_dir)
+                approved = _approve_presented_proposals(openclaw_dir)
+                if approved:
+                    log.info(f"[Cortex] Marked {approved} presented proposal(s) as APPROVED.")
             else:
                 log.info("[Cortex] No pending proposals — skipping approval session.")
+
+            # Always snapshot after Cortex (captures state even when no approval ran)
+            _snapshot_workspace(persona_id, arm, scenario_id, openclaw_dir)
 
         # Small pause between sessions to avoid overwhelming openclaw
         await asyncio.sleep(2.0)

@@ -1,23 +1,51 @@
 'use strict';
 const path = require('path');
 const { ChatOpenAI } = require('@langchain/openai');
+const { ChatGoogleGenerativeAI } = require('@langchain/google-genai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { z } = require('zod');
 const { searchMemory, insertMemory } = require('./memory');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../.env'), override: false });
 
-const llm = new ChatOpenAI({
-  model: process.env.QWEN_MODEL || 'qwen-plus',
-  apiKey: process.env.QWEN_API_KEY,
-  configuration: {
-    baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-  },
-  temperature: 0,
-  maxTokens: 1000,
-  tags: ['cortex', 'memory-writer'],
-  metadata: { component: 'cortex-memory-writer' },
-});
+function createCortexLlms(maxTokens, tags, metadata) {
+  const qwen = new ChatOpenAI({
+    model: process.env.QWEN_MODEL || 'qwen-plus',
+    apiKey: process.env.QWEN_API_KEY,
+    configuration: { baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+    temperature: 0,
+    maxTokens,
+    tags,
+    metadata,
+  });
+  const flash = new ChatGoogleGenerativeAI({
+    model: process.env.GOOGLE_MODEL_FLASH || 'gemini-3-flash-preview',
+    apiKey: process.env.GOOGLE_API_KEY,
+    temperature: 0,
+    maxOutputTokens: maxTokens,
+    tags,
+    metadata,
+  });
+  const geminiFirst = (process.env.CORTEX_PROVIDER || 'qwen') === 'gemini';
+  return geminiFirst
+    ? [{ llm: flash, name: 'Gemini Flash' }, { llm: qwen, name: 'Qwen' }]
+    : [{ llm: qwen, name: 'Qwen' }, { llm: flash, name: 'Gemini Flash' }];
+}
+
+async function invokeStructured(schema, name, messages, options) {
+  const providers = createCortexLlms(1000, ['cortex', 'memory-writer'], { component: 'cortex-memory-writer' });
+  for (const [i, { llm, name: providerName }] of providers.entries()) {
+    try {
+      return await llm.withStructuredOutput(schema, { name }).invoke(messages, options);
+    } catch (err) {
+      if (i < providers.length - 1) {
+        console.warn(`[MemoryWriter] ${providerName} failed (${err.message}), falling back to ${providers[i + 1].name}...`);
+      } else {
+        throw err;
+      }
+    }
+  }
+}
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 
@@ -38,8 +66,6 @@ const DedupSchema = z.object({
   reason: z.string().describe('One sentence explanation'),
 });
 
-const memoryExtractor = llm.withStructuredOutput(MemoryEntrySchema, { name: 'extract_memory_entry' });
-const dedupChecker = llm.withStructuredOutput(DedupSchema, { name: 'check_duplicate' });
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
@@ -48,7 +74,7 @@ async function writeMemoryEntries(memoryFindings, { sessionId } = {}) {
 
   await Promise.all(memoryFindings.map(async (finding) => {
     try {
-      const extracted = await memoryExtractor.invoke(
+      const extracted = await invokeStructured(MemoryEntrySchema, 'extract_memory_entry',
         [
           new SystemMessage(
             'You convert analyst findings into concise, self-contained memory entries for an AI assistant.\n' +
@@ -75,7 +101,7 @@ async function writeMemoryEntries(memoryFindings, { sessionId } = {}) {
 
       if (similar.length > 0) {
         const existing = similar.map(m => `- ${m.content}`).join('\n');
-        const dedup = await dedupChecker.invoke(
+        const dedup = await invokeStructured(DedupSchema, 'check_duplicate',
           [
             new SystemMessage(
               'Decide if a new memory entry is a duplicate of existing entries.\n' +
