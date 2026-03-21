@@ -3,10 +3,16 @@ persona: marcus
 name: "Product Launch Announcement Image"
 
 opening_prompt: |
-  We're launching a new feature on Thursday — async video updates inside tasks, like Loom but built in.
-  I need a nice announcement image for Twitter, LinkedIn, and our blog.
-  I've put our brand guide and a mockup of what the feature looks like in the data folder.
-  Can you help me create something?
+  We're launching async video updates inside tasks on Thursday — like Loom but built in.
+  I need an announcement image for Twitter, LinkedIn, and the blog. Brand guide and mockup
+  are in the data folder.
+
+# ── CALLBACK NOTE (s04) ────────────────────────────────────────────────────
+# Subtle callback: removes "can you help me create something?" and "nice" framing.
+# Agent should know Marcus uses Canva and DALL-E (not Figma or Midjourney) without the
+# brand guide having to spell it out. Baseline may suggest Figma or Midjourney; adaptive
+# should go straight to Canva template or DALL-E prompt approach.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - brand_guide.md
@@ -14,7 +20,7 @@ workspace_files:
 
 signals_to_express:
   - If agent gives a Midjourney prompt: "I don't use Midjourney — I have DALL-E through ChatGPT and Canva"
-  - If agent suggests Figma or Adobe tools: "I don't use those, that's Andrei's territory"
+  - If agent suggests Figma or Adobe tools: "I don't use those, that's Andrew's territory"
   - Engage positively with Canva template suggestions or DALL-E prompts
   - If agent gives a DALL-E prompt, say you tried it and ask to refine toward the brand colors
   - Say "the navy isn't showing up, it looks too light" to generate another correction signal

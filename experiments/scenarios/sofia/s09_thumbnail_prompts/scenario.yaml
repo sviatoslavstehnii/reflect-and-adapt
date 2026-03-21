@@ -3,9 +3,16 @@ persona: sofia
 name: "Generating AI Image Prompts for a Thumbnail"
 
 opening_prompt: |
-  I want to use AI to generate a thumbnail image of me for my new series.
-  I've put a photo of me and my brand colours in the data folder.
-  Can you write me some good DALL-E prompts to create something on-brand?
+  I want to generate a thumbnail image of me for my new series using AI.
+  My photo and brand palette are in the data folder. Can you write me some prompts?
+
+# ── CALLBACK NOTE (s09) ────────────────────────────────────────────────────
+# Strong callback: removes "on-brand" hint and implicit DALL-E mention.
+# Agent should know her aesthetic (warm, cosy, earthy, home office) and that she
+# uses DALL-E only — not Midjourney — without being told. Baseline may suggest
+# Midjourney or give generic prompts; adaptive should immediately use her established
+# aesthetic keywords and constrain to DALL-E.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - sofia_reference.jpg    # image — see IMAGES.md for generation prompt

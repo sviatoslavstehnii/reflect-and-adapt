@@ -3,9 +3,15 @@ persona: sofia
 name: "Brainstorming a New Video Series Concept"
 
 opening_prompt: |
-  I want to launch a proper video series — something with a consistent format that
-  people can follow episode to episode. I've put some audience comments and feedback
-  in the data folder. Can you help me figure out what the series should be?
+  I want to start a proper video series. There's some audience feedback in the data folder.
+  What should it be?
+
+# ── CALLBACK NOTE (s06) ────────────────────────────────────────────────────
+# Moderate callback: omits "consistent format" and "people can follow episode to episode".
+# Agent should know Sofia is a solo creator and factor in production simplicity and
+# longevity unprompted. Baseline may suggest highly produced formats; adaptive should
+# immediately constrain to solo-feasible, visually varied concepts.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - audience_feedback.csv

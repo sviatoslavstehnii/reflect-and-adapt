@@ -10,7 +10,7 @@ id,email,full_name,created_at,last_login,tasks_created,team_size,plan
 9,fake_user_99@guerrillamail.com,Fake User,2024-11-15,2024-11-15,0,1,trial
 10,lena.bauer@streampipe.de,Lena Bauer,2026-02-01,2026-03-09,228,6,pro
 11,qwerty@test.org,qwerty qwerty,2025-03-08,2025-03-08,0,1,trial
-12,andrei.popescu@teamflow.io,Andrei Popescu,2025-06-01,2026-03-13,22,1,internal
+12,andrei.popescu@teamflow.io,Andrew Popescu,2025-06-01,2026-03-13,22,1,internal
 13,hello@example.com,Example User,2025-07-19,2025-07-20,1,1,trial
 14,contact@designhive.co,Sofia Marchetti,2026-01-28,2026-03-12,1891,80,enterprise
 15,noreply@noreply.com,No Reply,2025-08-03,2025-08-03,0,1,trial

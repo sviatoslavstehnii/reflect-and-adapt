@@ -36,7 +36,7 @@
 ## Tools we use for design
 - Canva (Pro) — for social images, blog headers, presentations
 - DALL-E (via ChatGPT Plus) — for AI-generated images
-- Figma — only Andrei uses this
+- Figma — only Andrew uses this
 
 ## Social Image Sizes
 - Twitter/X:   1200 × 628 px

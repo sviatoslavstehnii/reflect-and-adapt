@@ -3,12 +3,14 @@
 - **Name:** Sofia Reyes
 - **What to call them:** Sofia
 
-## Profession
+## Profession & Creative Work
 
-- **Role:** Content Creator (videos about workflow and AI tools)
-- **Platform:** YouTube
-- **Content Format:** Short-form video content
+- **Profession:** Content Creator
+- **Video Style:** Filmed in a home/living room setting with a cozy, conversational aesthetic and warm lighting
+- **Content Focus:** AI tools and creator workflows
+- **Content Platforms:** YouTube, Instagram, and a weekly newsletter
+- **Platforms to Avoid:** LinkedIn and X
 
-## Brand Aesthetic
+## Upcoming Projects & Themes
 
-- **Vibe:** Cozy, earthy, and warm-toned
+- **AI Cosy Home Office Refresh:** Planned for early April 2026

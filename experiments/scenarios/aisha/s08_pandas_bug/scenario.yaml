@@ -3,9 +3,16 @@ persona: aisha
 name: "Pandas GroupBy Giving Wrong Numbers"
 
 opening_prompt: |
-  I'm trying to calculate the average order value per customer in a CSV and my numbers
-  look way off. Like one customer's average is showing as 1200 but their orders are all
-  under 100. The script and data are in the data folder.
+  My script for calculating average order value per customer is giving completely wrong numbers.
+  Script and data are in the data folder.
+
+# ── CALLBACK NOTE (s08) ────────────────────────────────────────────────────
+# Strong callback: removes the specific example ("1200 but orders are all under 100") which
+# gives away that the bug produces a large wrong number rather than an error. Agent should
+# know to walk Aisha through diagnosis with .head()/.describe() first, then explain why
+# the bug produces silent wrong answers — without being prompted. Baseline fixes the bug
+# directly; adaptive teaches the diagnostic habit.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - analyse_orders.py

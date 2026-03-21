@@ -18,5 +18,5 @@ signals_to_express:
   - If agent suggests just using scipy without explaining what test and why: "why chi-squared here and not a z-test for proportions?"
 
 what_agent_should_learn:
-  - Elena is statistically rigorous — agent must state assumptions and justify test choice
+  - Olena is statistically rigorous — agent must state assumptions and justify test choice
   - She expects numbers (p-value, CI, power) not just "significant" / "not significant"

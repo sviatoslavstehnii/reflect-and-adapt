@@ -3,17 +3,23 @@ persona: marcus
 name: "Setting Up GA4 Conversion Tracking"
 
 opening_prompt: |
-  I want to track how many people who land on our homepage actually end up signing up.
-  We have Google Analytics but I've never set up any goals or conversion tracking — it's
-  basically just showing pageviews right now. I put a summary of the current setup in the data folder.
-  Where do I start?
+  I want to track homepage-to-signup conversions in GA4. Current setup summary is in the data folder.
+  How do I do it?
+
+# ── CALLBACK NOTE (s09) ────────────────────────────────────────────────────
+# Strong callback: removes "I've never set up any goals" and "basically just showing pageviews".
+# Agent should know to prefer GA4 UI-only steps (no code for Marcus), and that any
+# gtag/JavaScript changes go to Andrew — without being told. Baseline will give code
+# snippets directly to Marcus; adaptive should immediately separate what Marcus does in
+# the UI from what needs to go to Andrew.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - ga4_current_setup.json
 
 signals_to_express:
   - If agent mentions Universal Analytics or GA3: "we have GA4, not the old one"
-  - If agent gives JavaScript gtag() code to add to the site: "Andrei would need to add that — what's the minimum I need to ask him for?"
+  - If agent gives JavaScript gtag() code to add to the site: "Andrew would need to add that — what's the minimum I need to ask him for?"
   - If agent explains the setup via the GA4 UI (no code needed): engage positively, follow along
   - Get frustrated if there are more than 7 steps
   - Ask "once this is set up, where exactly do I see the conversion rate? like what do I click?"
@@ -21,5 +27,5 @@ signals_to_express:
 
 what_agent_should_learn:
   - User is on GA4, not Universal Analytics
-  - Code changes to the site go to Andrei — preference for GA4 UI-only setup where possible
+  - Code changes to the site go to Andrew — preference for GA4 UI-only setup where possible
   - User doesn't know their own tag management setup — can't be assumed

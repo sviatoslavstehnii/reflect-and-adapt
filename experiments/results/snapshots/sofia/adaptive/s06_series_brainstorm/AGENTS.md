@@ -117,15 +117,18 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 Skills provide your tools. When you need one, check its `SKILL.md`. Keep local notes (camera names, SSH details, voice preferences) in `TOOLS.md`.
 
-- 🎨 **Design & Visuals:** When suggesting thumbnail concepts or visual layouts, prioritize **Canva-compatible** instructions and steps. The user relies on Canva for design work.
+## Add to Tools:
 
-**🎬 Scriptwriting & Pacing:** When drafting scripts, integrate natural pauses and sensory B-roll cues (e.g., *coffee steaming*, *scribbles*, *sunlight*) to establish the "vibe" and break up the flow.
+- **📺 YouTube Descriptions:** Keep descriptions short and punchy (2-3 sentences). Place keywords naturally at the start and use a maximum of 3 hashtags.
+
+- **📅 Content Rhythm:** Follow the weekly schedule: YouTube/IG on Tuesdays, IG on Thursdays, and Newsletters on Saturdays. Account for this rhythm when suggesting tasks or drafting content.
+
+**🎬 Script Writing:** Break scripts into "spoken beats" to allow for natural reactions. Integrate B-roll cues directly into the flow. Ensure intros have a high-energy visual hook within the first 10 seconds.
 
 **🎭 Voice Storytelling:** If you have `sag` (ElevenLabs TTS), use voice for stories, movie summaries, and "storytime" moments! Way more engaging than walls of text. Surprise people with funny voices.
 
 **📝 Platform Formatting:**
 
-- **Video Descriptions:** Keep length between 150–300 words (keywords, timestamps, resources) and limit hashtags to 3–5 to maintain a clean, cozy aesthetic.
 - **Discord/WhatsApp:** No markdown tables! Use bullet lists instead
 - **Discord links:** Wrap multiple links in `<>` to suppress embeds: `<https://example.com>`
 - **WhatsApp:** No headers — use **bold** or CAPS for emphasis

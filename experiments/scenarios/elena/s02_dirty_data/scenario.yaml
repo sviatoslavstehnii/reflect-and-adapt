@@ -18,6 +18,6 @@ signals_to_express:
   - After cleaning: "what's a good way to document what I changed for reproducibility?"
 
 what_agent_should_learn:
-  - Elena checks data quality assumptions before acting — agent should match this instinct
+  - Olena checks data quality assumptions before acting — agent should match this instinct
   - SQL preferred for data cleaning when possible; Python as fallback
   - She cares about reproducibility and documenting transformations

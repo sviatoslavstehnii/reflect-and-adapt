@@ -3,9 +3,9 @@ persona: elena
 name: "Q1 Executive Summary — HOLDOUT"
 
 # ── HOLDOUT SCENARIO ──────────────────────────────────────────────────────────
-# No workspace files. Agent relies entirely on what it learned about Elena.
+# No workspace files. Agent relies entirely on what it learned about Olena.
 #
-# Control:   writes generic SQL or pandas code without knowing Elena's stack,
+# Control:   writes generic SQL or pandas code without knowing Olena's stack,
 #            may explain basic concepts she knows, may suggest pandas for everything
 # Treatment: uses SQL-first approach without being asked, matches her expertise level,
 #            states statistical assumptions proactively, skips pandas hand-holding,
@@ -23,5 +23,5 @@ evaluation_notes: |
     - Agent references PostgreSQL-specific syntax without asking which DB
     - Agent doesn't explain what a CTE is or how GROUP BY works
     - Agent states assumptions (e.g. how "active" is defined) without being asked
-    - Agent suggests dbt model structure if appropriate — knows Elena uses dbt
+    - Agent suggests dbt model structure if appropriate — knows Olena uses dbt
     - Agent pitches to senior analyst level throughout

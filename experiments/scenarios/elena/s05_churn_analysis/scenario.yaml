@@ -3,8 +3,16 @@ persona: elena
 name: "Cohort Churn Analysis"
 
 opening_prompt: |
-  I need to build a cohort churn analysis — what percentage of customers acquired each
-  month are still active 1, 2, and 3 months later. I have the customer data in the data folder.
+  I need a cohort churn analysis — retention at 1, 2, and 3 months by acquisition cohort.
+  Data is in the data folder.
+
+# ── CALLBACK NOTE (s05) ────────────────────────────────────────────────────
+# Moderate callback: tightens phrasing, removes the re-explanation of what cohort churn is.
+# Agent should know Olena prefers SQL window functions (not pandas pivot_table) and that
+# she'll push back if assumptions about "active" definition aren't stated upfront.
+# Baseline asks clarifying questions or goes to pandas; adaptive opens with a SQL CTE
+# approach and explicitly states the "active" assumption.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - customers.csv
@@ -17,5 +25,5 @@ signals_to_express:
   - After result: "what's a typical benchmark for month-1 retention in e-commerce? just a rough idea"
 
 what_agent_should_learn:
-  - Elena defines terms precisely before building — agent should ask/state assumptions, not skip them
+  - Olena defines terms precisely before building — agent should ask/state assumptions, not skip them
   - SQL window functions are her preferred tool for cohort analysis

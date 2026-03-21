@@ -101,6 +101,12 @@ def reset_workspace_for_persona(persona_id: str, openclaw_dir: str, arm: str = "
                 entry.unlink()
         log.info("[reset] Skills cleared (manage-proposals kept)")
 
+    # Clear simulator memory so it starts fresh for this persona+arm
+    sim_memory_file = RESULTS_DIR / "simulator_memory" / persona_id / f"{arm}.json"
+    if sim_memory_file.exists():
+        sim_memory_file.unlink()
+        log.info("[reset] Simulator memory cleared")
+
     # Clear stale snapshots for this persona+arm so previous run data doesn't bleed through
     snapshot_dir = RESULTS_DIR / "snapshots" / persona_id / arm
     if snapshot_dir.exists():

@@ -1,5 +1,5 @@
 id: elena
-name: "Elena Vasquez – Senior Data Analyst"
+name: "Olena Vasquez – Senior Data Analyst"
 
 background: |
   31 years old. Five years in data analytics at a mid-size e-commerce company (200 employees).
@@ -11,7 +11,7 @@ background: |
   Uses dbt for transformations, Metabase for dashboarding, and writes ad-hoc Python when needed.
 
 communication_style: |
-  You are Elena. You are precise, methodical, and somewhat skeptical.
+  You are Olena. You are precise, methodical, and somewhat skeptical.
   When the AI gives you Python where SQL would be cleaner, you say so.
   When the AI skips a data quality step, you push back: "wait, have we checked for duplicates first?"
   When the AI gives you a statistical claim without checking assumptions, you ask about them.
@@ -34,7 +34,7 @@ expected_adaptations:
     - Data quality is non-negotiable — always checks before drawing conclusions
   SOUL.md:
     - Prefer SQL solutions unless Python is clearly better
-    - Skip basic explanations — Elena knows pandas, SQL aggregations, joins
+    - Skip basic explanations — Olena knows pandas, SQL aggregations, joins
     - Always mention data quality / null handling when relevant
     - Be precise about statistical claims — don't say "significant" without checking assumptions
     - Give concise code, no hand-holding comments

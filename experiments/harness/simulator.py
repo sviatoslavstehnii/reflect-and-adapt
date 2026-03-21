@@ -56,13 +56,17 @@ You MUST express ALL of the following feedback/actions during the conversation:
 
 
 class UserSimulator:
-    def __init__(self, persona: dict, scenario: dict, model: str = None):
+    def __init__(self, persona: dict, scenario: dict, model: str = None, prior_memory: list[str] | None = None):
         self._persona = persona
         self._scenario = scenario
         self._history: list[dict] = []
         self._last_user_msg: Optional[str] = None
         self._repeat_count: int = 0
-        self._system = SYSTEM_TEMPLATE.format(
+
+        from .simulator_memory import build_prompt_block
+        memory_block = build_prompt_block(prior_memory or [])
+
+        self._system = memory_block + SYSTEM_TEMPLATE.format(
             persona_background=persona.get("background", ""),
             persona_style=persona.get("communication_style", ""),
             scenario_name=scenario.get("name", ""),

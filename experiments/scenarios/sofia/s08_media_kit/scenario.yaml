@@ -3,9 +3,15 @@ persona: sofia
 name: "Creating a Media Kit for Brand Partnerships"
 
 opening_prompt: |
-  I keep getting asked for a media kit when brands reach out and I've been sending
-  a messy Google Doc which is embarrassing. I've put my channel stats in the data folder.
-  Can you help me structure a proper media kit?
+  I need a media kit for brand partnerships. Channel stats are in the data folder.
+  Can you put one together for me?
+
+# ── CALLBACK NOTE (s08) ────────────────────────────────────────────────────
+# Strong callback: removes "messy Google Doc" hint (which signals she wants something better).
+# Agent should know without being told that she wants a Canva-friendly single-page format
+# in warm, personal tone — not a multi-page document or corporate pitch. Baseline will
+# propose a document structure; adaptive should open with a Canva one-pager layout.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - channel_stats.json   # reuses the file from s04

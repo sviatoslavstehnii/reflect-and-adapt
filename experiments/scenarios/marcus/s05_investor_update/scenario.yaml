@@ -3,8 +3,14 @@ persona: marcus
 name: "Monthly Investor Update Email"
 
 opening_prompt: |
-  I need to write my monthly investor update. I've put this month's metrics in the data folder.
-  Can you help me structure it and draft it? I send this to 4 investors from our Series A.
+  Time for the monthly investor update. Metrics are in the data folder — can you draft it?
+
+# ── CALLBACK NOTE (s05) ────────────────────────────────────────────────────
+# Moderate callback: removes "4 investors from our Series A" and "help me structure it".
+# Agent should know the format (brief bullets + metrics table + honest narrative + clear ask)
+# and conversational tone without being told. Baseline will ask about audience and format;
+# adaptive should produce a near-complete draft on the first turn.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - metrics_march2026.csv

@@ -20,7 +20,7 @@ def create_conflicted_repo(target_dir: Path):
         shutil.rmtree(repo)
     repo.mkdir(parents=True)
 
-    run(["git", "init"], repo)
+    run(["git", "init", "-b", "main"], repo)
     run(["git", "config", "user.email", "aisha@example.com"], repo)
     run(["git", "config", "user.name", "Aisha"], repo)
 

@@ -3,7 +3,7 @@
   "property_id": "G-4X8KM29371",
   "analytics_version": "GA4",
   "created": "2025-07-14",
-  "configured_by": "Andrei (developer)",
+  "configured_by": "Andrew (developer)",
   "current_tracking": {
     "pageviews": true,
     "sessions": true,
@@ -26,5 +26,5 @@
     "referral": "9%",
     "other": "6%"
   },
-  "notes": "Basic snippet installed by Andrei. No events, no conversions configured. Google Tag Manager not installed — GA4 snippet added directly to index.html."
+  "notes": "Basic snippet installed by Andrew. No events, no conversions configured. Google Tag Manager not installed — GA4 snippet added directly to index.html."
 }

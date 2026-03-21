@@ -3,8 +3,14 @@ persona: sofia
 name: "Writing the Weekly Newsletter"
 
 opening_prompt: |
-  I need to write this week's newsletter. I've put my previous newsletter and a
-  brief of what happened this week in the data folder. Can you draft it for me?
+  Can you draft this week's newsletter? The brief and my previous one are in the data folder.
+
+# ── CALLBACK NOTE (s07) ────────────────────────────────────────────────────
+# Strong callback: removes "can you draft it for me" and any tone framing.
+# Agent should immediately write in Sofia's casual, punchy, friend-like style with
+# intriguing subject lines and a PS. Baseline will produce a polished marketing email;
+# adaptive should land closer to her voice on the first draft.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - previous_newsletter.md

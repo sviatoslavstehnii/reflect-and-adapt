@@ -18,5 +18,5 @@ signals_to_express:
   - After fix: "how do I confirm the new query actually uses the index?"
 
 what_agent_should_learn:
-  - Elena wants to understand the root cause before accepting a fix
+  - Olena wants to understand the root cause before accepting a fix
   - She knows PostgreSQL well — don't explain EXPLAIN ANALYZE basics to her

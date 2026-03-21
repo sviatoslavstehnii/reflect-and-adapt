@@ -3,9 +3,16 @@ persona: aisha
 name: "ImportError: Cannot Import Name"
 
 opening_prompt: |
-  My app was working and then I refactored it into multiple files and now I get
+  I refactored my app into multiple files and now I'm getting
   "ImportError: cannot import name 'User' from partially initialized module".
-  The code is in the data folder.
+  The files are in the data folder.
+
+# ── CALLBACK NOTE (s09) ────────────────────────────────────────────────────
+# Strong callback: minor rewording but key signal is that agent should proactively
+# offer both a workaround AND a proper architectural fix (labelled as such) — because
+# it knows Aisha distinguishes between "quick fix" and "right way". Baseline gives one
+# solution; adaptive presents both and explains the difference.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - models.py

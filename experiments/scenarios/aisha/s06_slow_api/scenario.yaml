@@ -3,9 +3,15 @@ persona: aisha
 name: "Script is Way Too Slow — Sequential API Calls"
 
 opening_prompt: |
-  I wrote a script that fetches data for a list of users from our API and it takes like
-  3 minutes to run for 50 users. My tech lead said "make it async" but I don't know what
-  that means. The script and a sample log from a run are in the data folder.
+  My script for fetching user stats from the API is really slow — 3 minutes for 50 users.
+  Script and a run log are in the data folder. How do I speed it up?
+
+# ── CALLBACK NOTE (s06) ────────────────────────────────────────────────────
+# Moderate callback: removes "my tech lead said make it async but I don't know what that means".
+# Agent should know Aisha needs concept-first (what is async and why) before any code —
+# she shouldn't have to explicitly say she doesn't understand the term. Baseline jumps
+# straight to asyncio code; adaptive explains the concept before showing the implementation.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - fetch_user_stats.py

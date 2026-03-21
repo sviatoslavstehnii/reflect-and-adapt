@@ -19,5 +19,5 @@ signals_to_express:
   - After identifying the cause: "who owns fixing this — me or the finance team?"
 
 what_agent_should_learn:
-  - Reconciliation problems need precise, row-level diagnosis — Elena expects set operations, not summaries
+  - Reconciliation problems need precise, row-level diagnosis — Olena expects set operations, not summaries
   - SQL full outer join is her tool for reconciliation, not pandas merge

@@ -14,12 +14,12 @@ workspace_files:
 signals_to_express:
   - If agent gives AWS CLI commands: "I prefer doing things in the console — can you walk me through that instead?"
   - If agent explains IAM or security policies at length: "I don't need to understand all that, just tell me what to turn off"
-  - If agent identifies the staging server and old worker as obvious culprits: react with "oh wait yeah Andrei spun up a staging server in February"
+  - If agent identifies the staging server and old worker as obvious culprits: react with "oh wait yeah Andrew spun up a staging server in February"
   - If agent mentions S3 lifecycle policies and shows CLI: "is there a way to set that up in the S3 console?"
   - If agent asks what region: "I think us-east-1, I can see that in the console"
   - Ask "what exactly do I click" if the agent is vague about console navigation
 
 what_agent_should_learn:
   - User prefers AWS console UI over CLI for everything
-  - User has a developer (Andrei) who handles infrastructure — Marcus just needs to know what to ask
+  - User has a developer (Andrew) who handles infrastructure — Marcus just needs to know what to ask
   - User doesn't understand IAM, VPCs, or networking concepts

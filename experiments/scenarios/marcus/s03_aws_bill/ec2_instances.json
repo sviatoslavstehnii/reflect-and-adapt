@@ -19,7 +19,7 @@
       "launched": "2026-02-28",
       "monthly_cost_usd": 30.37,
       "last_activity": "2026-03-11",
-      "note": "Staging environment spun up by Andrei — running 24/7, not needed overnight"
+      "note": "Staging environment spun up by Andrew — running 24/7, not needed overnight"
     },
     {
       "instance_id": "i-0c1e2f3a4b5d6012",

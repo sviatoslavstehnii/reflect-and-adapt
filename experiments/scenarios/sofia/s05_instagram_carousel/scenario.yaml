@@ -3,9 +3,14 @@ persona: sofia
 name: "Repurposing a YouTube Video into an Instagram Carousel"
 
 opening_prompt: |
-  I want to turn my Notion AI review video into an Instagram carousel but I don't want it
-  to just be a summary — I want it to feel like its own thing. The transcript is in the
-  data folder. Can you help me pull out the best carousel from it?
+  Can you turn my Notion AI review transcript into an Instagram carousel? It's in the data folder.
+
+# ── CALLBACK NOTE (s05) ────────────────────────────────────────────────────
+# Moderate callback: omits "don't want it to just be a summary" and style guidance.
+# Agent should know Sofia hates bullet summaries and expect Canva visual direction
+# per slide without prompting. Baseline defaults to structured summary; adaptive
+# should open with a native Instagram framing immediately.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - notion_ai_transcript.txt

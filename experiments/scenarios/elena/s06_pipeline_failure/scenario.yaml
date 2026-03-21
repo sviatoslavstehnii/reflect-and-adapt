@@ -19,5 +19,5 @@ signals_to_express:
   - After fix plan: "how do I set up an alert so I know immediately next time, not 6 hours later?"
 
 what_agent_should_learn:
-  - Elena uses dbt — agent should know dbt concepts (models, tests, sources, runs)
+  - Olena uses dbt — agent should know dbt concepts (models, tests, sources, runs)
   - She wants root cause, not just the fix

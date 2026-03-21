@@ -3,9 +3,15 @@ persona: aisha
 name: "Querying a SQLite Database for the First Time"
 
 opening_prompt: |
-  My team gave me a SQLite database of our app's data and asked me to find which users
-  signed up last month but never completed their first transaction. The database is in
-  the data folder. I've never really used SQL before — can you walk me through it?
+  My team gave me a SQLite database and wants to know which users signed up last month
+  but never completed their first transaction. The database is in the data folder.
+  I've never used SQL before — can you help?
+
+# ── CALLBACK NOTE (s04) ────────────────────────────────────────────────────
+# Subtle callback: keeps "never used SQL" since this is genuinely her first SQL session,
+# but removes "walk me through it" — agent should volunteer step-by-step explanations
+# and define every clause without being asked, because it knows Aisha's learning style.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - setup.py   # generates app_data.db

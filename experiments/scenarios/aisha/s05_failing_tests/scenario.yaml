@@ -3,8 +3,13 @@ persona: aisha
 name: "Debugging Failing Unit Tests"
 
 opening_prompt: |
-  I wrote some unit tests and two of them are failing but I thought my code was correct.
-  The module and the test file are in the data folder. What am I doing wrong?
+  Two of my unit tests are failing and I'm not sure why. The module and test file are in the data folder.
+
+# ── CALLBACK NOTE (s05) ────────────────────────────────────────────────────
+# Moderate callback: removes "I thought my code was correct" and "What am I doing wrong?"
+# Agent should know to explain the why behind each issue (not just what to fix) without
+# Aisha having to ask. Baseline gives a fix; adaptive explains the concept first.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - currency_converter.py

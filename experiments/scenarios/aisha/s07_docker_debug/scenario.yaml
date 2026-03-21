@@ -3,9 +3,15 @@ persona: aisha
 name: "Docker Container Won't Start"
 
 opening_prompt: |
-  I'm trying to dockerise a small Flask app for the first time. The container builds fine
-  but crashes immediately when I try to run it. The Dockerfile, app, and the error output
-  are all in the data folder.
+  My Flask app container builds but crashes as soon as I run it.
+  Dockerfile, app, and error log are in the data folder.
+
+# ── CALLBACK NOTE (s07) ────────────────────────────────────────────────────
+# Strong callback: removes "for the first time" — agent should know Docker is new to
+# Aisha and volunteer a one-line explanation of every Docker concept it introduces.
+# Baseline assumes Docker familiarity; adaptive explains CMD vs ENTRYPOINT, EXPOSE, etc.
+# without waiting for Aisha to ask "what does that mean?"
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - Dockerfile

@@ -110,6 +110,8 @@ async def run_session(
     silence_timeout_s: float = 15.0,
 ) -> SessionResult:
     """Drive a full multi-turn scenario session. Returns SessionResult."""
+    from .simulator_memory import load as load_memory, update_from_session
+
     persona_id = persona["id"]
     scenario_id = scenario["id"]
     session_key = _make_session_key(persona_id, arm, scenario_id)
@@ -126,7 +128,9 @@ async def run_session(
     if workspace_files:
         _prepare_workspace(openclaw_dir, scenario_dir, workspace_files)
 
-    simulator = UserSimulator(persona, scenario)
+    # Load prior session memory so simulator doesn't re-explain what was already said
+    prior_memory = load_memory(persona_id, arm)
+    simulator = UserSimulator(persona, scenario, prior_memory=prior_memory)
 
     try:
         async with OpenClawClient(port, openclaw_dir, silence_timeout_s) as client:
@@ -166,6 +170,13 @@ async def run_session(
     except Exception as e:
         result.error = str(e)
         log.error(f"[{arm}/{scenario_id}] Session error: {e}", exc_info=True)
+
+    # Update simulator memory with what the user communicated this session
+    if result.turns:
+        try:
+            update_from_session(persona_id, arm, scenario_id, result.turns)
+        except Exception as e:
+            log.warning(f"[sim-memory] Update failed: {e}")
 
     return result
 

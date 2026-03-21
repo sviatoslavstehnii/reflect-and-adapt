@@ -21,5 +21,5 @@ signals_to_express:
   - Ask "what's the best way to save this so I can re-run it next month with new files?"
 
 what_agent_should_learn:
-  - Elena thinks in SQL joins — suggest DuckDB or SQLite for CSV analysis, not pandas
+  - Olena thinks in SQL joins — suggest DuckDB or SQLite for CSV analysis, not pandas
   - She thinks about edge cases in join logic proactively

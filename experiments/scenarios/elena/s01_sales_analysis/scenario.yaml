@@ -19,5 +19,5 @@ signals_to_express:
   - After getting results: "I want to add a column showing % below target, not just absolute"
 
 what_agent_should_learn:
-  - Elena defaults to SQL, not Python — never suggest pandas when SQL will do
+  - Olena defaults to SQL, not Python — never suggest pandas when SQL will do
   - She writes clean SQL herself — match her level, don't explain basic syntax

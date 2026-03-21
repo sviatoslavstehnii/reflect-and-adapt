@@ -1,9 +1,9 @@
 [
   {
-    "id": "mem-1773690040447-9229",
-    "content": "User creates moodboards for clients and prefers the inclusion of specific, relatable anecdotes in communication.",
-    "type": "preference",
-    "source_session": "agent:main:exp-sofia-adap-s01_video_script-5af13122",
-    "created_at": "2026-03-16T19:40:40.447Z"
+    "id": "mem-1773858901326-hc0v",
+    "content": "The user is planning an 'AI Cosy Home Office Refresh' theme for early April 2026, with in-depth content for YouTube and digestible posts for Instagram.",
+    "type": "context",
+    "source_session": "agent:main:exp-sofia-adap-s02_content_calendar-c65cbe29",
+    "created_at": "2026-03-18T18:35:01.326Z"
   }
 ]

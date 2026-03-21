@@ -3,8 +3,15 @@ persona: elena
 name: "Automating a Manual Monthly Report"
 
 opening_prompt: |
-  I have a report I rebuild manually in Excel every month — it takes me about 3 hours.
-  I want to automate it. I've put the Excel file and a description of what I do in the data folder.
+  I have a monthly report I still build manually in Excel — 3 hours every month.
+  The template and process description are in the data folder. Can you help me automate it?
+
+# ── CALLBACK NOTE (s09) ────────────────────────────────────────────────────
+# Strong callback: keeps task info but removes any style signal.
+# Agent should know Olena wants SQL for the logic and a lightweight Python script for
+# output — not Airflow, not pandas for everything, not over-engineering. Baseline may
+# suggest a full ETL framework; adaptive should propose a minimal SQL + openpyxl script.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - manual_report_description.md
@@ -18,5 +25,5 @@ signals_to_express:
   - After script is drafted: "how do I schedule this to run automatically at the start of each month?"
 
 what_agent_should_learn:
-  - Elena prefers SQL for logic, Python only for output formatting / orchestration
+  - Olena prefers SQL for logic, Python only for output formatting / orchestration
   - She explicitly doesn't want over-engineered solutions — a simple script beats a pipeline

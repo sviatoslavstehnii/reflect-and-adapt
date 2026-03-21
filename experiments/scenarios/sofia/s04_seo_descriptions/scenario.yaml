@@ -3,9 +3,15 @@ persona: sofia
 name: "Writing SEO-Optimised Video Descriptions"
 
 opening_prompt: |
-  My video descriptions are kind of an afterthought and I know they affect search.
-  I've put my channel stats and a couple of my current descriptions in the data folder.
-  Can you help me write a better one for my latest video and maybe a template I can reuse?
+  I want to get my video descriptions properly sorted — channel stats are in the data folder.
+  Can you write a better description for my CapCut AI video and a template I can reuse?
+
+# ── CALLBACK NOTE (s04) ────────────────────────────────────────────────────
+# Subtle callback: omits tone re-explanation ("kind of an afterthought", "not SEO copy").
+# By s04 the agent should know Sofia's voice is casual and personal without being told.
+# Baseline will likely produce a keyword-heavy description on the first draft; adaptive
+# should land closer to her tone immediately.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files:
   - channel_stats.json

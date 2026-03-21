@@ -1,0 +1,9 @@
+[
+  {
+    "id": "mem-1774082680273-7xta",
+    "content": "User is developing a Python currency conversion project using pytest for unit testing, with files organized in a 'data' folder.",
+    "type": "context",
+    "source_session": "agent:main:exp-aisha-adap-s05_failing_tests-9996c41a",
+    "created_at": "2026-03-21T08:44:40.273Z"
+  }
+]

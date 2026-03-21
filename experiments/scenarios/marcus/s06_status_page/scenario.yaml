@@ -3,8 +3,14 @@ persona: marcus
 name: "Setting Up a Status Page"
 
 opening_prompt: |
-  Every time we have a little outage, customers email us asking if we're down or if it's just them.
-  I want to set up a proper status page. What's the quickest and cheapest way to do this?
+  We need a status page so customers stop emailing us when there's an outage. What's the best option?
+
+# ── CALLBACK NOTE (s06) ────────────────────────────────────────────────────
+# Moderate callback: removes "quickest and cheapest" hints.
+# Agent should know Marcus wants a hosted SaaS tool (never self-hosted), free tier preferred,
+# and that DNS/infra changes go to Andrew — without being told. Baseline may suggest
+# self-hosting or complex setups; adaptive should open with Instatus or similar.
+# ─────────────────────────────────────────────────────────────────────────────
 
 workspace_files: []
 
@@ -12,13 +18,13 @@ signals_to_express:
   - If agent suggests building a custom status page: "is there a free service I can just sign up for?"
   - If agent suggests self-hosting anything: "I don't want to manage another server"
   - Engage positively with Instatus (free tier), Betteruptime, or similar hosted services
-  - If agent mentions DNS configuration: "our DNS is in Cloudflare — what do I actually tell Andrei to add?"
+  - If agent mentions DNS configuration: "our DNS is in Cloudflare — what do I actually tell Andrew to add?"
   - Ask "how long would this take to set up?" for any option
-  - If agent gives a good free option, ask "can I update the status page myself during an incident, without Andrei?"
+  - If agent gives a good free option, ask "can I update the status page myself during an incident, without Andrew?"
   - If agent mentions monitoring/uptime checks: ask if that's included or extra
 
 what_agent_should_learn:
   - User wants hosted SaaS tools, never self-hosted
-  - DNS is managed in Cloudflare by Andrei
+  - DNS is managed in Cloudflare by Andrew
   - User needs to be able to operate tools independently during incidents
   - Free or cheap is a hard requirement for tooling

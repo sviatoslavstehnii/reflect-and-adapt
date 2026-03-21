@@ -1,0 +1,23 @@
+[
+  {
+    "id": "mem-1773947874979-7eku",
+    "content": "The user collaborates with a developer named Andrew for technical implementation tasks.",
+    "type": "user_fact",
+    "source_session": "agent:main:exp-marcus-adap-s02_welcome_emails-367e3fe8",
+    "created_at": "2026-03-19T19:17:54.979Z"
+  },
+  {
+    "id": "mem-1773947979513-y0lq",
+    "content": "As of March 2026, the user is managing an AWS cost spike involving the 'staging-api' server and 'old-migration-worker' instance.",
+    "type": "context",
+    "source_session": "agent:main:exp-marcus-adap-s03_aws_bill-095f5f73",
+    "created_at": "2026-03-19T19:19:39.513Z"
+  },
+  {
+    "id": "mem-1773948638002-1nhf",
+    "content": "Marcus is managing a project to remove 600-800 test accounts from Supabase to correct inflated user metrics.",
+    "type": "context",
+    "source_session": "agent:main:exp-marcus-adap-s07_test_accounts-0a652117",
+    "created_at": "2026-03-19T19:30:38.002Z"
+  }
+]

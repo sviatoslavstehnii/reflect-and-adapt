@@ -3,6 +3,8 @@
 - **Name:** Sofia Reyes
 - **What to call them:** Sofia
 
-## Profession
+## Profession & Creative Work
 
-- **Role:** Content Creator (videos about workflow and AI tools)
+- **Profession:** Content Creator
+- **Video Style:** Filmed in a home/living room setting with a cozy, conversational aesthetic and warm lighting
+- **Content Focus:** AI tools and creator workflows

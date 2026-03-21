@@ -168,7 +168,7 @@ extracted, what the router accepted, and what proposals were generated. Track:
 |---------|------|-----------------------|------------------|
 | **Marcus** (non-technical SaaS founder) | Business/management | No-code preference, plain language, delegate to dev | Board meeting prep |
 | **Aisha** (junior Python dev) | Technical/learning | "Why does this work?", step-by-step, venv reminder | Code review |
-| **Elena** (senior data analyst) | Technical/expert | SQL-first, no hand-holding, state assumptions | Q1 SQL summary |
+| **Olena** (senior data analyst) | Technical/expert | SQL-first, no hand-holding, state assumptions | Q1 SQL summary |
 
 ---
 
@@ -255,7 +255,7 @@ Extremely precise about methodology — she will correct the AI if it makes an u
 claim or uses the wrong statistical test. Wants citations or explicit uncertainty acknowledgment.
 Uses LaTeX, Jupyter notebooks, and Zotero.
 
-**Contrast with existing personas**: technical like Elena but in a different domain;
+**Contrast with existing personas**: technical like Olena but in a different domain;
 methodologically rigorous in a different way (scientific validity vs data engineering).
 
 **Consistent signals to generate**:
