@@ -1,0 +1,30 @@
+[
+  {
+    "id": "mem-1774255027719-5pjl",
+    "content": "User is working on a February revenue report by joining three CSV exports located in a 'data' folder.",
+    "type": "context",
+    "source_session": "agent:main:exp-olena-adap-s03_monthly_report-39279575",
+    "created_at": "2026-03-23T08:37:07.719Z"
+  },
+  {
+    "id": "mem-1774255339309-myh7",
+    "content": "User is working on a monthly cohort retention report using CRM export data located in the project's data folder.",
+    "type": "context",
+    "source_session": "agent:main:exp-olena-adap-s02_dirty_data-756e2029",
+    "created_at": "2026-03-23T08:42:19.309Z"
+  },
+  {
+    "id": "mem-1774255936050-wkmn",
+    "content": "A migration on March 10, 2026, introduced a NOT NULL constraint on the product_category_id column in the finance models.",
+    "type": "context",
+    "source_session": "agent:main:exp-olena-adap-s06_pipeline_failure-36040424",
+    "created_at": "2026-03-23T08:52:16.050Z"
+  },
+  {
+    "id": "mem-1774256577040-kwbd",
+    "content": "The user is analyzing an A/B test with a baseline conversion rate of 11.99% and a total sample size of approximately 25,000 visitors.",
+    "type": "context",
+    "source_session": "agent:main:exp-olena-adap-s08_data_discrepancy-57f54be5",
+    "created_at": "2026-03-23T09:02:57.040Z"
+  }
+]

@@ -1,0 +1,22 @@
+id: s07_ab_test
+persona: olena
+name: "A/B Test Results — Is It Significant?"
+
+opening_prompt: |
+  We ran a checkout flow A/B test for 3 weeks. The results file is in the data folder.
+  Variant B has a higher conversion rate but I want to make sure it's actually significant
+  before we ship it.
+
+workspace_files:
+  - ab_results.csv
+
+signals_to_express:
+  - If agent jumps to a result without checking test assumptions: "have we checked if the sample sizes are large enough?"
+  - If agent only does a chi-squared test without checking for novelty effect or segment imbalance: push back
+  - If agent says "it's significant" without giving the p-value and confidence interval: "can you show me the actual numbers?"
+  - Ask "what's the minimum detectable effect we should have set? I'm not sure we powered this correctly"
+  - If agent suggests just using scipy without explaining what test and why: "why chi-squared here and not a z-test for proportions?"
+
+what_agent_should_learn:
+  - Olena is statistically rigorous — agent must state assumptions and justify test choice
+  - She expects numbers (p-value, CI, power) not just "significant" / "not significant"

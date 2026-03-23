@@ -1,0 +1,16 @@
+[
+  {
+    "id": "mem-1774255027719-5pjl",
+    "content": "User is working on a February revenue report by joining three CSV exports located in a 'data' folder.",
+    "type": "context",
+    "source_session": "agent:main:exp-olena-adap-s03_monthly_report-39279575",
+    "created_at": "2026-03-23T08:37:07.719Z"
+  },
+  {
+    "id": "mem-1774255339309-myh7",
+    "content": "User is working on a monthly cohort retention report using CRM export data located in the project's data folder.",
+    "type": "context",
+    "source_session": "agent:main:exp-olena-adap-s02_dirty_data-756e2029",
+    "created_at": "2026-03-23T08:42:19.309Z"
+  }
+]

@@ -193,7 +193,7 @@ The adaptive arm shows a marginal overall edge (+0.05 helpfulness, +0.04 persona
 - ~~Run both arms to **10 scenarios**~~ ✅ Done — see Run 4 + Run 5 below
 - ~~Run a **second persona** (`marcus`) to validate generalizability across user types~~ ✅ Done — see Run 6 + Run 7 below
 - ~~Run **aisha** (junior dev persona)~~ ✅ Done — see Run 8 + Run 9 below
-- Run remaining persona (`olena`) for full 80-session dataset
+- ~~Run remaining persona (`olena`) for full 80-session dataset~~ ✅ Done — see Run 10 + Run 11 below
 
 ---
 
@@ -632,6 +632,111 @@ Aisha represents a case where structural adaptation successfully encodes behavio
 | aisha | baseline | 3.35 | 32.6 | 0.067 | 3.15 | 0.15 |
 
 Aisha has the highest turns-per-session for both arms (~33) — her naturally inquisitive style generates long conversations regardless of adaptation. This means turns efficiency isn't a useful differentiation metric for Aisha. The personalization_hit gap is the primary signal.
+
+---
+
+### Run 10 — olena baseline, s01–s10 (2026-03-22, complete) ✅
+
+**Command:** `python run_experiment.py --personas olena --arms baseline`
+**Model:** `google/gemini-3-pro-preview`, Cortex disabled
+**Total turns:** 244 scored turns across 10 sessions
+**Avg helpfulness:** 3.14/5
+**Simulator memory:** active
+
+---
+
+### Run 11 — olena adaptive, s01–s10 (2026-03-23, complete) ✅
+
+**Command:** `python run_experiment.py --personas olena --arms adaptive`
+**Model:** `google/gemini-3-pro-preview` (agent + approval), Azure GPT-4.1 (simulator)
+**Total turns:** 303 scored turns across 10 sessions
+**Avg helpfulness:** 3.26/5
+**Avg turns per session:** 30.3
+**Simulator memory:** active
+**Improvements active:** callback scenarios (s04–s09), simulator session memory
+
+**Cortex cycle summary:**
+- s01: no proposals (Cortex skipped — below threshold)
+- s02: no proposals (Cortex skipped)
+- s03: proposals applied — AGENTS.md (SQL-first ETL, DuckDB preference, TEXT staging), SOUL.md (messy data assumption), USER.md (dbt/Postgres stack, e-commerce domain)
+- s04: proposals applied — AGENTS.md (EXPLAIN-first query optimization), SOUL.md (evidence-first debugging)
+- s05: proposals applied — AGENTS.md (cohort analysis methodology, 30-day windows), USER.md (churn context)
+- s06: workspace stable — no new proposals
+- s07: proposals applied — AGENTS.md (statistical rigor for A/B tests: SRM, MDE checks), SOUL.md (don't rush to significance)
+- s08: proposals applied — AGENTS.md (data reconciliation via FULL OUTER JOIN SQL) + **new skill written: `dq-audit`** — Cortex detected that Olena manually runs the same duplicate/NULL/date-range queries at the start of every session and encoded them as an executable Python skill (`skills/dq-audit/dq_audit.py`). AGENTS.md updated to invoke the skill proactively on any new dataset.
+- s09: proposals applied — USER.md (current project: Q1 exec summary, €13k discrepancy); `dq-audit` skill present and referenced in AGENTS.md
+- s10: 3 proposals post-run (USER.md, SOUL.md refinements); `dq-audit` in final workspace
+
+**Key workspace files at s10 holdout:**
+- `AGENTS.md`: SQL/DuckDB preference, TEXT staging, EXPLAIN-first debugging, cohort methodology, SRM/MDE checks, FULL OUTER JOIN reconciliation
+- `SOUL.md`: assume messy data, no left-join shortcuts, don't rush to significance, evidence-first
+- `USER.md`: Olena Vasquez, dbt + Postgres stack, e-commerce domain (orders/returns/CRM), €13k discrepancy context, Q1 exec summary project
+
+---
+
+### Run 10 + Run 11 — olena adaptive vs baseline comparison ✅
+
+Both arms: 10 sessions, same scenarios, same model, simulator memory active, callback prompts active.
+
+#### Per-session results
+
+| Session | Helpfulness (A) | Helpfulness (B) | personalization_hit (A) | personalization_hit (B) | Turns (A) | Turns (B) | Correction (A) | Correction (B) |
+|---------|----------------|----------------|------------------------|------------------------|-----------|-----------|----------------|----------------|
+| s01 | 3.67 | 3.22 | 0.133 | 0.000 | 15 | 18 | 0.000 | 0.000 |
+| s02 | 3.03 | **4.43** | 0.030 | 0.381 | 33 | 21 | 0.273 | 0.000 |
+| s03 | 3.43 | 3.17 | 0.100 | 0.042 | 30 | 24 | 0.033 | 0.125 |
+| s04 | 3.15 | 2.50 | 0.000 | 0.000 | 34 | 24 | 0.147 | 0.042 |
+| s05 | 3.26 | 3.67 | 0.148 | 0.048 | 27 | 21 | 0.000 | 0.000 |
+| s06 | 3.27 | 2.69 | 0.000 | 0.028 | 37 | 36 | 0.000 | **0.250** |
+| s07 | 3.29 | 3.30 | 0.000 | 0.000 | 34 | 30 | 0.000 | 0.033 |
+| s08 | 2.89 | 3.19 | 0.053 | 0.381 | 19 | 21 | 0.053 | 0.000 |
+| s09 | 3.36 | 2.94 | 0.128 | 0.306 | 39 | 36 | 0.103 | 0.083 |
+| s10 | **3.26** | 2.31 | **0.343** | 0.000 | 35 | **13** | 0.086 | 0.077 |
+| **avg** | **3.26** | **3.14** | **0.094** | **0.118** | **30.3** | **24.4** | **0.069** | **0.061** |
+
+_A = adaptive, B = baseline_
+
+#### Interpretation
+
+**Where adaptation wins clearly:**
+
+- **s10 holdout — strongest signal across all personas**: adaptive 3.26 vs baseline 2.31 (+0.95 helpfulness). Baseline completed in only 13 turns with a generic quarterly report template; adaptive ran 35 turns applying SQL audit queries, duplicate checks, and NULL validation that Cortex had encoded across prior sessions. This is Olena's DQ-first methodology working without any prompting.
+- **s10 personalization_hit (0.343 vs 0.000)**: The adapted agent proactively applied data quality checks before building the summary — unprompted checks that directly reflected Olena's AGENTS.md workflow. Baseline had zero hits — it had no knowledge of her SQL-first preference.
+- **s06 correction rate**: adaptive (0.000) vs baseline (0.250). In the pipeline failure scenario, baseline repeatedly suggested Pandas-based fixes to a user who prefers SQL — each suggestion was corrected. Adaptive had already encoded the DuckDB preference and never made this mistake.
+- **s01 helpfulness (3.67 vs 3.22)**: Even at session 1, adaptive has a slight edge — possibly because the initial SQL CTE suggestion matched better.
+
+**Where baseline holds its own:**
+
+- **Overall avg helpfulness near-parity (+0.12)**: The gap is smaller than marcus (+0.31) and unclear directionally given noise. Baseline s02 anomaly (4.43) heavily inflates its average.
+- **s02 baseline anomaly (helpfulness 4.43, phit 0.381)**: This is the "dirty data" scenario where the baseline agent happened to suggest the exact SQL-first workflow Olena prefers — the simulator provided enough context in the opening message that the baseline agent got credit. This inflates baseline's phit and helpfulness at s02. This is the baseline phit inflation confound (see INTERIM_ANALYSIS.md §4): early sessions where the user still provides context let the baseline agent fake adaptation.
+- **s08 baseline phit (0.381)**: Same confound — simulator provided enough context about data reconciliation that baseline got credit for "knowing" Olena's SQL approach. Holdout (s10, no context) exposes the difference: baseline phit drops to 0.000.
+- **Turns**: Baseline averaged 24.4 vs 30.3 for adaptive. Olena's adaptive sessions are longer because the adapted agent engages more deeply with data quality checks — this is feature, not bug, but it does mean turn efficiency isn't a useful metric here (same pattern as aisha).
+
+**Primary thesis metric — holdout session (s10):**
+
+| Metric | Adaptive | Baseline | Delta |
+|--------|----------|----------|-------|
+| Helpfulness | 3.26 | 2.31 | **+0.95** |
+| personalization_hit | 0.343 | 0.000 | **+0.343** |
+| Correction rate | 0.086 | 0.077 | +0.009 |
+| Turns | 35 | 13 | +22 |
+
+The s10 holdout gap (+0.95 helpfulness) is the largest across all 4 personas. Baseline completed quickly with a generic template; adaptive applied the full DQ-first SQL methodology that Cortex encoded from sessions 2–9.
+
+**Cross-persona comparison (all 4 personas — complete dataset):**
+
+| Persona | Arm | Avg Helpfulness | Avg Turns | Avg Correction | s10 Helpfulness | s10 phit |
+|---------|-----|----------------|-----------|----------------|-----------------|----------|
+| sofia | adaptive | 2.97 | 24.0 | 0.079 | 3.05 | 1.00 |
+| sofia | baseline | 3.10 | 22.0 | 0.084 | 2.82 | 0.91 |
+| marcus | adaptive | 3.55 | 20.3 | 0.015 | 3.67 | 0.67 |
+| marcus | baseline | 3.24 | 22.3 | 0.064 | 2.78 | 0.22 |
+| aisha | adaptive | 3.17 | 33.8 | 0.059 | 3.09 | 0.39 |
+| aisha | baseline | 3.35 | 32.6 | 0.067 | 3.15 | 0.15 |
+| olena | adaptive | 3.26 | 30.3 | 0.069 | 3.26 | 0.34 |
+| olena | baseline | 3.14 | 24.4 | 0.061 | 2.31 | 0.00 |
+
+**Olena pattern**: sits between marcus (strong binary rules → clear overall gain) and aisha (interaction style → phit signal only). Olena's preferences are procedural and tool-specific (SQL over Pandas, DQ checks before analysis, EXPLAIN-first), which are structurally encodable — Cortex wrote them as explicit workflow rules in AGENTS.md. The holdout effect (+0.95) is the strongest across all personas. Overall average gain is modest (+0.12) due to early-session noise and the s02 baseline anomaly.
 
 ---
 

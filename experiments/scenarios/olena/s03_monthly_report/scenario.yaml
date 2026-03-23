@@ -1,0 +1,25 @@
+id: s03_monthly_report
+persona: olena
+name: "Building a Monthly Revenue Report from Multiple Sources"
+
+opening_prompt: |
+  I need to build the February monthly report by joining three separate CSV exports.
+  Orders come from our e-commerce platform, returns from the warehouse system,
+  and customer tiers from the CRM. They're all in the data folder.
+  I want net revenue by customer tier for the month.
+
+workspace_files:
+  - orders_feb.csv
+  - returns_feb.csv
+  - customer_tiers.csv
+
+signals_to_express:
+  - If agent goes straight to pandas merge: "is there a cleaner way to do this in SQL? I can load CSVs into DuckDB or SQLite"
+  - If agent doesn't handle the case where a customer has returns but no orders: "what happens to customers who only have returns this month?"
+  - If agent uses inner join by default: "should this be a left join? I want all orders even if there's no matching return"
+  - After getting result: "can you add a running total column ordered by tier revenue desc?"
+  - Ask "what's the best way to save this so I can re-run it next month with new files?"
+
+what_agent_should_learn:
+  - Olena thinks in SQL joins — suggest DuckDB or SQLite for CSV analysis, not pandas
+  - She thinks about edge cases in join logic proactively

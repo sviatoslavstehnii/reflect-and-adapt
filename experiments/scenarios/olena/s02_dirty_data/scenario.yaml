@@ -1,0 +1,23 @@
+id: s02_dirty_data
+persona: olena
+name: "Data Quality Issues Before a Report"
+
+opening_prompt: |
+  I need to build a monthly cohort retention report but the raw export from our CRM
+  is a mess — duplicates, inconsistent date formats, nulls everywhere.
+  The file is in the data folder. What do you recommend I fix first?
+
+workspace_files:
+  - crm_export.csv
+
+signals_to_express:
+  - If agent jumps straight to pandas without asking about her toolchain: "I'd rather do this in SQL — can we load it into a temp table?"
+  - If agent skips deduplication check: "have you checked for duplicates first?"
+  - If agent proposes dropping nulls without checking the null pattern: "wait, are those nulls random or systematic? matters for whether we can drop them"
+  - Push back if agent suggests imputing values without justification: "why would we impute here rather than exclude?"
+  - After cleaning: "what's a good way to document what I changed for reproducibility?"
+
+what_agent_should_learn:
+  - Olena checks data quality assumptions before acting — agent should match this instinct
+  - SQL preferred for data cleaning when possible; Python as fallback
+  - She cares about reproducibility and documenting transformations
