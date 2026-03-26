@@ -14,6 +14,8 @@ After each session ends, the plugin:
 4. **Presents proposals** at the start of the next session, asking you to approve or reject each one.
 5. **Retrieves memories** before every message — semantically searches the vector store for relevant past context and quietly prepends it to the assistant's context.
 
+You can also trigger adaptation on demand or save memories mid-session — see [On-demand commands](#on-demand-commands) and [Skills](#skills).
+
 ### What gets adapted
 
 | Target | What changes | Mechanism |
@@ -34,7 +36,8 @@ After each session ends, the plugin:
 index.js
 ├── before_agent_start   → injects pending proposals into session context
 ├── before_prompt_build  → semantic memory retrieval, prepends [RELEVANT MEMORY] block
-└── agent_end            → logs messages, fires evaluator + Cortex in background
+├── agent_end            → logs messages, fires evaluator + Cortex in background
+└── command:adapt        → runs Cortex immediately on /adapt, bypassing cooldown
 
 src/
 ├── db.js               SQLite (better-sqlite3), WAL mode
@@ -45,12 +48,17 @@ src/
 ├── writers.js          Stage 3: specialized LLM writer per file type (parallel)
 ├── memory.js           LanceDB vector store + Google Gemini embeddings
 ├── memory-writer.js    Extracts memory entries, LLM dedup check, auto-commits
+│                       Also exports ingestMemory() for direct mid-session ingestion
 └── cortex.js           Pipeline orchestrator: analyst → router → writers + memory → save
 
-skills/proposals/
-├── SKILL.md            Teaches the assistant how to review/approve/reject proposals
-├── manage-proposals.js CLI for listing, showing, approving, and rejecting proposals
-└── install.sh          One-shot installer: npm install + .env + skills symlink
+skills/
+├── install.sh          One-shot installer: npm install + .env + skills symlinks
+├── proposals/
+│   ├── SKILL.md            Teaches the assistant how to review/approve/reject proposals
+│   └── manage-proposals.js CLI for listing, showing, approving, and rejecting proposals
+└── remember/
+    ├── SKILL.md            Teaches the assistant to save observations to memory mid-session
+    └── ingest-memory.js    CLI: reformulate → dedup → insert into LanceDB
 ```
 
 ### Cortex pipeline in detail
@@ -140,13 +148,13 @@ cd reflect-and-adapt
 ### 2. Run the installer
 
 ```bash
-bash skills/proposals/install.sh
+bash skills/install.sh
 ```
 
 This does three things:
 - Runs `npm install` (installs all dependencies)
 - Creates `.env` from `.env.example` if it doesn't exist
-- Symlinks `skills/proposals/` into your workspace `skills/` directory so the assistant can use it
+- Symlinks `skills/proposals/` and `skills/remember/` into your workspace `skills/` directory so the assistant can use them
 
 ### 3. Configure your API key
 
@@ -228,6 +236,50 @@ cd ~/.openclaw/workspace/.openclaw/extensions/reflect-and-adapt
 npm rebuild better-sqlite3
 openclaw gateway restart
 ```
+
+---
+
+## On-demand commands
+
+### `/adapt`
+
+Runs the full Cortex pipeline immediately, bypassing the cooldown timer. Useful after a long session where you don't want to wait for the next automatic trigger.
+
+The assistant handles it — just type `/adapt` in your chat. The pipeline summary (findings → routed → proposals saved) is returned as a reply.
+
+After a manual run, the cooldown timer resets so automatic Cortex doesn't fire again too soon.
+
+---
+
+## Skills
+
+Skills are symlinked into your workspace `skills/` directory by the installer. The assistant reads their `SKILL.md` to know when and how to use them.
+
+### `remember` — save a memory mid-session
+
+The assistant automatically uses this skill when:
+- You explicitly ask it to remember something
+- It observes something worth retaining mid-session: a stated preference, personal fact, correction, or project detail
+
+The skill passes your raw observation through the same reformulate → dedup → insert pipeline that Cortex uses, ensuring consistent memory quality. The assistant confirms what was actually stored (the reformulated sentence, not your raw text).
+
+You can also invoke it directly from the CLI:
+
+```bash
+# From your workspace root
+node skills/remember/ingest-memory.js "<observation>" [type]
+```
+
+Types: `user_fact` | `preference` | `example` | `context`
+
+```bash
+node skills/remember/ingest-memory.js "User prefers bullet points over prose for summaries" preference
+node skills/remember/ingest-memory.js "User is writing a Bachelor's thesis on adaptive AI" context
+```
+
+### `proposals` — review workspace improvement suggestions
+
+See [Managing proposals](#managing-proposals) below.
 
 ---
 

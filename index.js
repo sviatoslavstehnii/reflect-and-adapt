@@ -209,6 +209,23 @@ INSTRUCTIONS:
       });
     }
 
+    // ── Hook: command:adapt ───────────────────────────────────────────────────
+    api.on('command:adapt', async (event, ctx) => {
+      log.info?.('[reflect-and-adapt] /adapt triggered — running Cortex cycle immediately.');
+      if (typeof runCortexCycle !== 'function') {
+        return { reply: 'Cortex is unavailable (module failed to load).' };
+      }
+      try {
+        const result = await runCortexCycle();
+        setLastCortexRun();
+        log.info?.(`[reflect-and-adapt] /adapt complete: ${result}`);
+        return { reply: `Cortex adaptation complete: ${result}` };
+      } catch (err) {
+        log.warn?.(`[reflect-and-adapt] /adapt failed: ${err.message}`);
+        return { reply: `Cortex adaptation failed: ${err.message}` };
+      }
+    });
+
     // ── Hook: agent_end ───────────────────────────────────────────────────────
     api.on('agent_end', async (event, ctx) => {
       log.info?.(`[reflect-and-adapt] agent_end fired — success=${event?.success}, messages=${event?.messages?.length ?? 'none'}, sessionKey=${ctx?.sessionKey}`);

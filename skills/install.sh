@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"  # skills/proposals/
-PLUGIN_DIR="$(cd "$SKILL_DIR/../.." && pwd)"              # plugin root
-WORKSPACE_ROOT="$(cd "$PLUGIN_DIR/../../.." && pwd)"      # workspace root
-SKILLS_DIR="$WORKSPACE_ROOT/skills"
+SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"  # skills/
+PLUGIN_DIR="$(cd "$SKILLS_DIR/.." && pwd)"                  # plugin root
+WORKSPACE_ROOT="$(cd "$PLUGIN_DIR/../../.." && pwd)"        # workspace root
+WORKSPACE_SKILLS="$WORKSPACE_ROOT/skills"
 
 echo "[reflect-and-adapt] Installing..."
 echo "  Plugin:    $PLUGIN_DIR"
@@ -25,12 +25,12 @@ else
 fi
 
 # ── 3. Symlink skills into workspace ─────────────────────────────────────────
-mkdir -p "$SKILLS_DIR"
+mkdir -p "$WORKSPACE_SKILLS"
 
 link_skill() {
   local name="$1"
-  local src="$PLUGIN_DIR/skills/$name"
-  local dst="$SKILLS_DIR/$name"
+  local src="$SKILLS_DIR/$name"
+  local dst="$WORKSPACE_SKILLS/$name"
 
   if [ ! -d "$src" ]; then
     echo "  ⚠ Skill source not found: $src"
@@ -50,6 +50,7 @@ link_skill() {
 }
 
 link_skill "proposals"
+link_skill "remember"
 
 # ── 4. Done ───────────────────────────────────────────────────────────────────
 echo ""

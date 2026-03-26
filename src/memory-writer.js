@@ -141,4 +141,68 @@ async function writeMemoryEntries(memoryFindings, { sessionId } = {}) {
   return saved;
 }
 
-module.exports = { writeMemoryEntries };
+/**
+ * Ingest a single raw observation directly into memory.
+ * Runs the same reformulate → dedup → insert pipeline as writeMemoryEntries,
+ * but accepts a plain string instead of an analyst finding object.
+ *
+ * Returns { id, content } on success, or { skipped: true, reason } if
+ * the entry was filtered out as a duplicate or not useful.
+ */
+async function ingestMemory(rawContent, type = 'user_fact', sessionId = 'manual') {
+  const extracted = await invokeStructured(MemoryEntrySchema, 'extract_memory_entry',
+    [
+      new SystemMessage(
+        'You convert a raw observation into a concise, self-contained memory entry for an AI assistant.\n' +
+        'Write as a factual statement that will be useful when retrieved months later, out of context.\n' +
+        'Good: "User works as a software engineer and is writing a Bachelor\'s thesis on adaptive AI."\n' +
+        'Bad: "User mentioned thesis" (too vague) or raw notes verbatim.'
+      ),
+      new HumanMessage(
+        `Raw observation: ${rawContent}\n` +
+        `Type hint: ${type}\n\n` +
+        'Create a self-contained memory entry from this observation.'
+      ),
+    ],
+    { runName: 'ingest_memory_extract', tags: ['memory-ingest'] }
+  );
+
+  if (extracted.skip) {
+    return { skipped: true, reason: extracted.skip_reason || 'not useful' };
+  }
+
+  const similar = await searchMemory(extracted.content, { threshold: 0.82 });
+
+  if (similar.length > 0) {
+    const existing = similar.map(m => `- ${m.content}`).join('\n');
+    const dedup = await invokeStructured(DedupSchema, 'check_duplicate',
+      [
+        new SystemMessage(
+          'Decide if a new memory entry is a duplicate of existing entries.\n' +
+          'A duplicate means the same fact is already captured — even if worded differently.\n' +
+          'New detail, higher specificity, or a correction counts as NEW (not a duplicate).'
+        ),
+        new HumanMessage(
+          `New candidate:\n"${extracted.content}"\n\nExisting similar entries:\n${existing}\n\n` +
+          'Is the candidate a duplicate of any existing entry?'
+        ),
+      ],
+      { runName: 'ingest_memory_dedup', tags: ['memory-ingest'] }
+    );
+
+    if (dedup.is_duplicate) {
+      return { skipped: true, reason: dedup.reason };
+    }
+  }
+
+  const id = await insertMemory({
+    content: extracted.content,
+    type: extracted.type,
+    source_session: sessionId,
+  });
+
+  if (!id) throw new Error('insertMemory returned null');
+  return { id, content: extracted.content };
+}
+
+module.exports = { writeMemoryEntries, ingestMemory };
