@@ -37,7 +37,7 @@ index.js
 ├── before_agent_start   → injects pending proposals into session context
 ├── before_prompt_build  → semantic memory retrieval, prepends [RELEVANT MEMORY] block
 ├── agent_end            → logs messages, fires evaluator + Cortex in background
-└── command:adapt        → runs Cortex immediately on /adapt, bypassing cooldown
+└── before_prompt_build  → intercepts /adapt to run Cortex immediately, bypassing cooldown
 
 src/
 ├── db.js               SQLite (better-sqlite3), WAL mode
@@ -243,11 +243,9 @@ openclaw gateway restart
 
 ### `/adapt`
 
-Runs the full Cortex pipeline immediately, bypassing the cooldown timer. Useful after a long session where you don't want to wait for the next automatic trigger.
+Type `/adapt` in any session to trigger the full Cortex pipeline immediately, bypassing the cooldown timer. The assistant will confirm it's running and Cortex executes in the background — any generated proposals will appear at the start of the next session.
 
-The assistant handles it — just type `/adapt` in your chat. The pipeline summary (findings → routed → proposals saved) is returned as a reply.
-
-After a manual run, the cooldown timer resets so automatic Cortex doesn't fire again too soon.
+After a manual run, the cooldown timer resets so the next automatic trigger stays consistent.
 
 ---
 

@@ -182,49 +182,47 @@ INSTRUCTIONS:
     });
 
     // ── Hook: before_prompt_build ─────────────────────────────────────────────
-    if (typeof searchMemory === 'function') {
-      api.on('before_prompt_build', async (event, ctx) => {
-        const userPrompt = event?.prompt || '';
-        if (!userPrompt || userPrompt.length < 10) return;
+    api.on('before_prompt_build', async (event, ctx) => {
+      const userPrompt = event?.prompt || '';
 
-        try {
-          const memories = await searchMemory(userPrompt, { limit: 5, threshold: 0.60 });
-          if (memories.length === 0) return;
-
-          const memBlock = memories
-            .map(m => `- [${m.type}] ${m.content}`)
-            .join('\n');
-
-          const contextBlock =
-            `[RELEVANT MEMORY]\n` +
-            `The following facts about the user were retrieved from episodic memory:\n` +
-            `${memBlock}\n` +
-            `[/RELEVANT MEMORY]`;
-
-          log.info?.(`[reflect-and-adapt] Injected ${memories.length} memory entry(ies) into context.`);
-          return { prependContext: contextBlock };
-        } catch (err) {
-          log.warn?.(`[reflect-and-adapt] Memory retrieval failed: ${String(err)}`);
+      // Intercept /adapt — run Cortex immediately, bypassing cooldown
+      if (userPrompt.includes('/adapt') && userPrompt.replace(/\[.*?\]/g, '').trim() === '/adapt') {
+        if (typeof runCortexCycle === 'function') {
+          log.info?.('[reflect-and-adapt] /adapt — running Cortex cycle immediately.');
+          runCortexCycle()
+            .then(result => {
+              log.info?.(`[reflect-and-adapt] /adapt cortex complete: ${result}`);
+              setLastCortexRun();
+            })
+            .catch(err => log.warn?.(`[reflect-and-adapt] /adapt cortex failed: ${err.message}`));
         }
-      });
-    }
-
-    // ── Hook: command:adapt ───────────────────────────────────────────────────
-    api.on('command:adapt', async (event, ctx) => {
-      log.info?.('[reflect-and-adapt] /adapt triggered — running Cortex cycle immediately.');
-      if (typeof runCortexCycle !== 'function') {
-        return { reply: 'Cortex is unavailable (module failed to load).' };
+        return { prependContext: '[REFLECT_AND_ADAPT] Cortex adaptation cycle started in the background. Tell the user it\'s running and any proposals will appear at the next session start. [/REFLECT_AND_ADAPT]' };
       }
+
+      if (!userPrompt || userPrompt.length < 10) return;
+      if (typeof searchMemory !== 'function') return;
+
       try {
-        const result = await runCortexCycle();
-        setLastCortexRun();
-        log.info?.(`[reflect-and-adapt] /adapt complete: ${result}`);
-        return { reply: `Cortex adaptation complete: ${result}` };
+        const memories = await searchMemory(userPrompt, { limit: 5, threshold: 0.60 });
+        if (memories.length === 0) return;
+
+        const memBlock = memories
+          .map(m => `- [${m.type}] ${m.content}`)
+          .join('\n');
+
+        const contextBlock =
+          `[RELEVANT MEMORY]\n` +
+          `The following facts about the user were retrieved from episodic memory:\n` +
+          `${memBlock}\n` +
+          `[/RELEVANT MEMORY]`;
+
+        log.info?.(`[reflect-and-adapt] Injected ${memories.length} memory entry(ies) into context.`);
+        return { prependContext: contextBlock };
       } catch (err) {
-        log.warn?.(`[reflect-and-adapt] /adapt failed: ${err.message}`);
-        return { reply: `Cortex adaptation failed: ${err.message}` };
+        log.warn?.(`[reflect-and-adapt] Memory retrieval failed: ${String(err)}`);
       }
     });
+
 
     // ── Hook: agent_end ───────────────────────────────────────────────────────
     api.on('agent_end', async (event, ctx) => {
