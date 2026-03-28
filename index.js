@@ -185,8 +185,14 @@ INSTRUCTIONS:
     api.on('before_prompt_build', async (event, ctx) => {
       const userPrompt = event?.prompt || '';
 
+      // Extract the actual user message text, stripping the TUI's sender
+      // metadata prefix (ends at \n\n) and the timestamp bracket prefix.
+      const lastDoubleNewline = userPrompt.lastIndexOf('\n\n');
+      const lastPart = lastDoubleNewline >= 0 ? userPrompt.slice(lastDoubleNewline + 2) : userPrompt;
+      const actualMessage = lastPart.replace(/^\[.*?\]\s*/, '').trim();
+
       // Intercept /adapt — run Cortex immediately, bypassing cooldown
-      if (userPrompt.includes('/adapt') && userPrompt.replace(/\[.*?\]/g, '').trim() === '/adapt') {
+      if (actualMessage === '/adapt') {
         if (typeof runCortexCycle === 'function') {
           log.info?.('[reflect-and-adapt] /adapt — running Cortex cycle immediately.');
           runCortexCycle()
