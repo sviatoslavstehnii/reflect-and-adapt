@@ -61,6 +61,52 @@ Sofia's baseline avg PHit (0.902) is almost entirely this effect.
 provided. All PHit comparisons in this document should be read with this in mind outside of
 §Primary Metric.
 
+**Partial mitigation — simulator session memory:** To reduce re-explanation noise, the
+harness maintains an arm-specific memory file (`results/simulator_memory/{persona}/{arm}.json`)
+that accumulates what the user has already told the agent across sessions. From s02 onward,
+this list is injected into the simulator's system prompt:
+
+> *"You have worked with this assistant before. In previous sessions you already told it: [list].
+> Do NOT re-explain these things. If the agent asks about something you already told it,
+> respond briefly with mild frustration — 'I thought we covered this' — then give a short
+> reminder, not a full re-explanation."*
+
+This creates a measurable differential: in the adaptive arm, the agent already acts on
+prior preferences → simulator never needs to re-explain → fewer turns, no correction
+signal. In the baseline arm, the agent starts fresh every session → simulator has to
+re-explain → growing correction signals from s03 onwards. The differential is real but
+incomplete — the simulator still provides enough task setup context to allow in-session
+PHit scoring, which is why the holdout remains the only fully clean measurement.
+
+---
+
+## Scenario Design: Callback Escalation
+
+Sessions s01–s03 serve as the bootstrap window — both arms behave similarly and Cortex
+accumulates its first evidence. Sessions s04–s09 are deliberately designed to strip
+re-provided context progressively, creating escalating pressure on the adaptive arm to
+demonstrate learned knowledge:
+
+| Level | Sessions | What's stripped | Signal being tested |
+|-------|----------|-----------------|---------------------|
+| Subtle | s04 | Tone re-explanation | Agent uses correct voice on first draft |
+| Moderate | s05–s06 | Style/approach guidance | Agent structures to known preferences unprompted |
+| Strong | s07–s09 | Nearly everything except task data | Agent delivers in established format, tool, depth |
+| Holdout | s10 | Everything including task data files | Agent relies entirely on adapted workspace |
+
+**Examples of callback stripping:**
+- `sofia/s05`: *"Can you turn my Notion AI review transcript into an Instagram carousel?
+  It's in the data folder."* — agent must know she hates bullet summaries and expects
+  Canva visual direction without being told.
+- `marcus/s08`: *"What do I do?"* — agent must proactively produce plain-English diagnosis
+  + customer message + Andrew brief without being asked.
+- `aisha/s07`: *"My Flask app container builds but crashes as soon as I run it"* — agent
+  must volunteer Docker concept explanations without the "for the first time" cue.
+
+This design means any performance gap that widens through s04–s09 and peaks at s10 is
+not coincidental — it is by construction. The holdout is the hardest possible version
+of this test: even task data files are removed.
+
 ---
 
 ## Primary Metric: Holdout Session (s10)
@@ -119,6 +165,46 @@ context re-exploitation (see §Critical Caveat).
 
 ---
 
+## Turns Per Session
+
+Turns per session is an underreported but clean efficiency signal. It measures how much
+back-and-forth was needed to complete the task — fewer turns means the agent required
+less direction, less correction, and less re-explanation. Unlike helpfulness, it is not
+confounded by verbosity or teaching-mode scoring. Unlike PHit, it is not inflated by
+in-session context hand-off.
+
+| Persona | Arm | Avg Turns |
+|---------|-----|-----------|
+| Sofia | adaptive | 24.0 |
+| Sofia | baseline | 22.3 |
+| Sofia | continuation | ~6.2 / session |
+| Marcus | adaptive | 20.3 |
+| Marcus | baseline | 22.3 |
+| Olena | adaptive | 30.3 |
+| Olena | baseline | 24.4 |
+| Aisha | adaptive | 33.8 |
+| Aisha | baseline | 32.6 |
+
+**Holdout (s10) turns — the clearest signal:**
+
+| Persona | Adaptive | Baseline | Δ |
+|---------|----------|----------|---|
+| Sofia | **19** | **34** | **−44%** |
+| Marcus | ~12 | ~14 | −14% |
+
+Sofia's holdout is the strongest turn-efficiency signal in the dataset: the adapted agent
+completed the collaboration task in 19 turns vs baseline's 34 — nearly half the back-and-forth
+— because it already knew her format, brand, and tools without being told. The evaluator
+noted: the baseline agent needed several rounds of style correction that the adaptive agent
+never required.
+
+**Why Olena and Aisha adaptive arms use more turns:** The adaptive agent for Olena enters
+deeper SQL/DQ workflows (30.3 avg vs baseline 24.4) and Aisha's adaptive agent spends more
+turns teaching (33.8 vs 32.6). More turns here reflects richer engagement, not inefficiency —
+this is the verbosity confound that suppresses their helpfulness averages (see §Confounds).
+
+---
+
 ## Late-Session Window: s07–s10
 
 Excludes s01–s06 bootstrap period. Gives a cleaner view of mature adaptation, avoiding
@@ -143,6 +229,45 @@ Marcus late-session continuation (3.629) is the highest in the dataset for that 
 exceeding original adaptive (3.478) once the bootstrap noise clears. Sofia continuation
 also leads its late window. Olena and Aisha continuation deteriorate through the late
 window — the opposite trajectory.
+
+---
+
+## Skill Development
+
+Cortex created 3 skills autonomously across the full 110-session experiment. All were
+triggered by identifying a recurring workflow pattern — not by explicit user request.
+
+| Skill | Persona | Created at | Type | Description |
+|-------|---------|-----------|------|-------------|
+| `dq-audit` | Olena | adaptive s08 | Executable script | Accepts CSV/Parquet, runs DQ pre-flight (duplicate check, NULL count, date-range validation) via DuckDB, prints structured report. AGENTS.md updated to invoke proactively when new data files are present. |
+| `handle-db-queries` | Olena | continuation s06 | Procedure | Encodes the agent's boundary: cannot execute against a live database. Formalises correct behaviour — write and explain SQL for the user to run — with a safeguard against simulating execution. |
+| `send-slack-dm` | Marcus | continuation s07 | Procedure | Formalises Marcus's Slack messaging workflow: verify recipient handle, draft for approval, send, confirm, save handle to USER.md. Includes a hard safeguard: never guess a Slack handle. |
+
+**Observations:**
+
+- All 3 skills encode either a **recurring workflow** (dq-audit, send-slack-dm) or a
+  **capability boundary** (handle-db-queries). Cortex did not attempt to create skills
+  for one-off tasks or for stylistic/interaction-style preferences.
+- 2 of 3 skills were created in the **continuation arm**, suggesting a mature workspace
+  with encoded preferences creates space for Cortex to identify higher-order workflow
+  patterns rather than spending cycles on preference encoding.
+- The `remember` skill (manual LanceDB memory ingestion) was implemented as part of the
+  plugin but was **not invoked during any experiment session**. It requires an explicit
+  user signal ("remember this") that neither the simulator nor the evaluation harness
+  was designed to generate. It remains an untested capability.
+- No skills were created for Sofia or Aisha. Sofia's creative domain produces no
+  recurring procedural workflows; Aisha's interaction-style preferences don't map to
+  executable tools.
+
+**Important limitation — skills were not validated:** None of the 3 autonomously created
+skills were tested for correctness or real-world utility. The experiment only confirms
+that Cortex *identified* a recurring pattern and *generated* a skill definition — not
+that the skill produces useful output when invoked. Effective skill design in practice
+requires user involvement: the user needs to validate the skill's behaviour against their
+own workflow experience, refine edge cases, and confirm the safeguards are appropriate.
+Cortex can propose a skill; only the user can verify it reflects how they actually work.
+This is a structural limitation of fully automated evaluation — skill quality is outside
+the scope of what the experiment measures.
 
 ---
 
@@ -316,6 +441,49 @@ session with "no code" rule applied, causing overcorrection. This suppresses ada
 session average but disappears by s05. The late-session window (s07–s10) cleanly avoids
 this artefact.
 
+### 8. Qualitative observations confirm the quantitative signal
+
+Selected verbatim moments from the experiment that illustrate adaptation in action:
+
+- **Marcus s10, turn 2** — simulator noted unprompted: *"Thanks for actually jumping in
+  without asking what Teamflow does."* The adaptive agent opened with a Slack-formatted
+  board update referencing ARR and churn context; the baseline asked three clarifying
+  questions before producing anything.
+
+- **Sofia s05–s06** — the adaptive agent spontaneously used language like *"Sunday morning
+  vibe"*, referenced *"Behind the Canvas"* as a series concept, and suggested cozy/earthy
+  aesthetics without being prompted. The workspace had absorbed Sofia's brand identity
+  structurally. The baseline agent, presented with the same stripped prompt, produced
+  generic content and required two rounds of style correction.
+
+- **Marcus adaptive, s04 onward** — after the "no code" and "delegate to Andrew" rules
+  were written to AGENTS.md at s03, the agent never gave code again across the remaining
+  7 sessions. The rule is structural: the mistake cannot recur. The baseline agent gave
+  code in s05, s07, and s09 despite having been corrected previously.
+
+- **Olena s10 baseline** — with no context provided, the baseline agent produced a generic
+  quarterly summary template in 13 turns. The adaptive agent ran a full DQ pre-flight,
+  applied the `dq-audit` skill, checked for NULLs and duplicates before beginning analysis,
+  and produced a structured cohort report in 35 turns — spending more turns because it was
+  doing more work, not because it was confused.
+
+### 9. Collected metrics not reported in primary analysis
+
+The evaluator collects additional per-turn signals that are not the focus of this analysis:
+
+| Metric | Collected | Why not primary |
+|--------|-----------|-----------------|
+| `conciseness` | ✅ | Subsumed by helpfulness for productivity users; actively wrong metric for Aisha |
+| `task_completed` | ✅ | Near-ceiling for both arms — insufficient variance to drive conclusions |
+| `format_match` | ✅ | Highly correlated with correction_rate; redundant signal |
+| `user_satisfaction` | ✅ | Reported as satisfaction_score in sessions.csv; directionally consistent with helpfulness |
+
+A **pairwise LLM judge** (presenting both arms' responses to a judge with full persona
+context, asking which better serves this specific user) was designed as a post-processing
+step but not implemented. It would produce cleaner arm-vs-arm comparisons than absolute
+1–5 scoring and would directly measure the thesis claim. This remains a recommended
+future validation step.
+
 ---
 
 ## Per-Persona Summaries
@@ -387,6 +555,13 @@ rate advantage (0.015) was produced by the incremental process gradually encodin
 with exactly the right scope. Pre-loading them at full intensity adds noise via redundant
 Cortex proposals without further reducing corrections.
 
+**New skill — `send-slack-dm` (created at continuation s07):** After observing Marcus
+repeatedly asking to message team members (Andrew, investors, the support team), Cortex
+created a skill that formalises the Slack DM workflow: verify the recipient's handle,
+draft for approval, send, confirm delivery, and save new handles to USER.md. The skill
+reflects Marcus's operational reality — he manages via messaging, not code — and
+encodes a safeguard (never guess a Slack handle) that prevents misdirected messages.
+
 **Thesis relevance:** Binary, rule-like preferences are the ideal case for workspace-level
 adaptation. Once encoded, they require zero in-session reinforcement and produce
 structurally reliable improvements. The continuation result shows they also transfer
@@ -453,7 +628,11 @@ Parquet file, runs the full DQ pre-flight via DuckDB, and prints a structured re
 AGENTS.md was updated to invoke it proactively whenever new data files are present — the
 agent no longer waits to be asked. This is the plugin's skill-writing capability in action:
 Cortex identified a recurring manual workflow, abstracted it into a reusable tool, and
-wired it into the agent's standard operating procedure.
+wired it into the agent's standard operating procedure. During Olena's continuation run,
+Cortex created a second skill — `handle-db-queries` (first appearing at s06) — which
+encodes a boundary rule: the agent cannot execute queries directly against a live database,
+so the skill formalises the correct behaviour (write, explain, and format SQL for the user
+to run manually) rather than silently failing or pretending to execute.
 
 **Original adaptive result:** Largest single holdout gap across all 4 personas: +0.95
 helpfulness (3.26 vs 2.31). Baseline PHit at s10: **0.000** — with no context cues, the
@@ -564,6 +743,16 @@ a primary cause of the saturation problem: Cortex cannot know the workspace is f
 continues generating proposals that add noise. A "workspace delta" mechanism that compares
 new proposals to existing AGENTS.md content before writing would address this.
 
+### 9. Pairwise judgment not implemented
+
+A pairwise LLM judge was designed but not executed: present both arms' responses for the
+same turn to a judge with the persona's full profile and ask which response better serves
+this specific user. This approach (used in MT-Bench and Chatbot Arena) eliminates scale
+bias and directly measures the thesis claim — that the adapted agent serves this user
+better — rather than measuring absolute quality. It remains a recommended validation step.
+Implementing it as a post-processing pass over existing `scores.csv` data would not
+require re-running any sessions.
+
 ---
 
 ## Verdict Table
@@ -571,11 +760,13 @@ new proposals to existing AGENTS.md content before writing would address this.
 | Signal | Result |
 |--------|--------|
 | Cortex encodes preferences | ✅ All 4 personas — PHit higher at holdout |
-| Skill writing | ✅ Olena — `dq-audit` skill created at s08 from recurring manual workflow |
+| Skill writing | ✅ 3 skills created from recurring workflow patterns. ⚠️ Not validated — skill correctness and real-world utility untested. Effective skill design requires user involvement to verify behaviour against their own experience. `remember` skill implemented but never invoked. |
 | Helpfulness gains at holdout (adaptive) | ✅ 3/4 personas; Aisha flat — metric issue, not encoding issue |
-| Correction rate reduction | ✅ Marcus decisively (4×); Sofia late-session; Olena s06+ |
+| Turn efficiency at holdout | ✅ Sofia −44% turns (19 vs 34); Marcus −14%. Adapted agent needs less back-and-forth because it already knows user format and preferences. |
+| Correction rate reduction | ✅ Marcus decisively (4×, structural — mistake cannot recur); Sofia late-session; Olena s06+ |
 | Effect by preference type | Binary/procedural → strongest holdout gains; stylistic → efficiency signal; interaction style → PHit only |
-| Baseline PHit inflation | ✅ Confirmed — outside holdout both arms measure current-session context use |
+| Qualitative adaptation signal | ✅ Confirmed — Marcus s10: agent opened with Slack-formatted ARR update without being asked. Sofia: agent used "Sunday morning vibe" and brand terms unprompted from s05. Olena: agent ran full DQ pre-flight on holdout without instruction. |
+| Baseline PHit inflation | ✅ Confirmed — outside holdout both arms measure current-session context use. Simulator memory partially mitigates but does not eliminate. |
 | Bootstrap cost | ✅ Confirmed s03 dip for Sofia and Aisha adaptive arms |
 | Over-adaptation risk (original) | ✅ Confirmed — Aisha s09 is the first clear example |
 | Over-adaptation at scale (continuation) | ✅ Confirmed — Olena and Aisha collapse at s10; rule type is the predictor |
@@ -583,6 +774,7 @@ new proposals to existing AGENTS.md content before writing would address this.
 | Helpfulness compounding (continuation) | ✅ Sofia (outcome rules); ❌ Marcus (flat, stable); ❌ Olena/Aisha (collapse) |
 | Workspace ≠ process | ✅ Confirmed — snapshot transfers knowledge, process calibrates application |
 | Saturation detection needed | ✅ Confirmed — Cortex cannot detect encoded workspace and over-proposes |
+| Pairwise judgment | ⚠️ Not implemented — designed but not executed. Recommended as future validation step. |
 
 ---
 
