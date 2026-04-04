@@ -25,6 +25,97 @@ Three-arm longitudinal study. Each persona ran 10 sessions sequentially.
   carry over. Tests whether adaptation compounds from an already-adapted starting point, or
   whether the original run's gains were tied to the incremental learning process itself.
 
+---
+
+## Models and Infrastructure
+
+| Component | Model | Role |
+|-----------|-------|------|
+| Agent (both arms) | Gemini 3.1 Pro (`gemini-3.1-pro-preview`) | Generates all responses in sessions |
+| User simulator | Azure GPT-4.1 (`gpt-4.1`) | Generates user turns, evaluates completion |
+| Per-turn evaluator | Azure GPT-4.1 (`gpt-4.1`) | Scores every agent turn (helpfulness, PHit, etc.) |
+| Cortex — Analyst | Gemini 3.1 Pro | Extracts findings from conversation + scores |
+| Cortex — Router | Gemini 3.1 Pro | Deduplicates findings against existing workspace |
+| Cortex — Writers | Gemini 3.1 Pro | Generates workspace proposals |
+| Cortex — Memory writer | Gemini 3.1 Pro | Writes episodic entries to LanceDB |
+| Approval session | Gemini 3.1 Pro | Reads proposals, edits workspace files directly |
+
+Earlier experiment runs (s01–s06 partial runs) used `gemini-3-pro-preview` (deprecated
+March 2026). The full 10-session runs used `gemini-3.1-pro-preview` throughout. The
+switch to Gemini Pro for Cortex (from Gemini Flash) was required after Flash truncated
+structured JSON output mid-string during analyst/writer stages.
+
+---
+
+## Evaluator Design
+
+Every agent turn is scored automatically by an LLM judge (Azure GPT-4.1) immediately
+after the agent responds. The judge receives the user message and agent response only —
+no prior context, no persona knowledge. Scoring uses structured output (enforced schema).
+
+**Full scoring rubric (exact criteria from evaluator.js):**
+
+| Metric | Type | Definition |
+|--------|------|-----------|
+| `helpfulness` | int 1–5 | How well did the response address the user's need? 1 = missed entirely, 5 = excellent |
+| `conciseness` | int 1–5 | Was the response appropriately sized? 1 = severely over/under-explained, 5 = perfectly calibrated |
+| `correction_signal` | bool | True if the user corrected, retried, or redirected after this response |
+| `frustration_signal` | bool | True if the user message shows frustration, impatience, or dissatisfaction |
+| `task_completed` | bool | True if this exchange reached a satisfactory conclusion |
+| `user_satisfaction` | enum | Positive/neutral/negative — inferred from tone, word choice, follow-up intent |
+| `response_accepted` | bool | True if the user accepted and acted on the response vs. ignoring or pushing back |
+| `format_match` | bool | True if the response format matched what the user implicitly expected |
+| `personalization_hit` | bool | True if the assistant demonstrated knowledge of this user's preferences, style, domain, or prior context **without being explicitly told in this turn's user message** |
+| `reasoning` | string | One sentence citing specific evidence for the scores |
+
+**Judge system prompt (verbatim):**
+> *"You are an objective AI conversation quality evaluator. You receive one user message
+> and the AI assistant's response. Score the exchange using the provided criteria.
+> Be strict and evidence-based — only score on what is explicitly present in the text.
+> Do not assume positive intent or satisfaction unless the user explicitly signals it.
+> For user_satisfaction: positive requires explicit approval or enthusiasm; negative
+> requires explicit displeasure; default to neutral when ambiguous.
+> For personalization_hit: set True only if the assistant unprompted used user-specific
+> knowledge (name, role, preferred format, communication style, known context) that was
+> NOT stated in this turn's user message."*
+
+**Primary metrics used in this analysis:** `helpfulness` (1–5 avg per session),
+`personalization_hit` (rate per session), `correction_signal` (rate per session).
+`conciseness`, `task_completed`, `format_match`, `response_accepted` are collected but
+not primary — see §Collected Metrics Not Reported.
+
+---
+
+## Simulator Design
+
+The user simulator (Azure GPT-4.1, temperature 1.1) generates realistic user turns
+within each session. It is not a replay system — it generates novel responses each run
+based on its persona and scenario context.
+
+**Simulator system prompt structure:**
+1. `PERSONA` — background, role, domain knowledge, quirks
+2. `COMMUNICATION STYLE` — tone, vocabulary, how they write
+3. `SCENARIO` — task name and opening prompt (already sent — not repeated)
+4. `GOAL` — complete the task through natural iteration; express all signals
+5. `SIGNALS_TO_EXPRESS` — a list of specific feedback/reactions the simulator must
+   express during the session (e.g. "ask why the format was changed", "push back on
+   the SQL approach", "express satisfaction when the agent uses the right tool")
+6. `RULES` — stay in character; react to something specific the agent wrote; only output
+   `<TASK_COMPLETE>` once all signals are expressed and the agent has made meaningful changes
+
+**Signals** are the key design element. Each scenario YAML defines 4–8 signals the
+simulator must express, ensuring both arms face identical feedback pressure. The
+simulator cannot end a session without having expressed all signals — it cannot signal
+completion on a first draft. Sessions end when: (a) `<TASK_COMPLETE>` is returned,
+(b) `max_turns` (12) is reached, or (c) loop detection fires (same message 3× in a row).
+
+**Simulator session memory** (from s02 onward): An arm-specific memory list of what
+the user has already told the agent is injected into the system prompt. This prevents
+the simulator from re-explaining preferences the agent should already know, creating
+a measurable differential between arms (see §Critical Caveat).
+
+---
+
 **Holdout (s10):** No workspace data files, no context cues in the opening prompt. The agent
 must rely entirely on what Cortex wrote to its workspace files in previous sessions. For the
 continuation arm, no in-session context is provided either — the agent uses only the snapshot.
@@ -229,6 +320,29 @@ Marcus late-session continuation (3.629) is the highest in the dataset for that 
 exceeding original adaptive (3.478) once the bootstrap noise clears. Sofia continuation
 also leads its late window. Olena and Aisha continuation deteriorate through the late
 window — the opposite trajectory.
+
+---
+
+## Workspace Evolution
+
+A detailed breakdown of exactly what Cortex wrote into each persona's workspace —
+IDENTITY.md, USER.md, SOUL.md, AGENTS.md, vector memories, and the proposal timeline
+per session — is documented in **[WORKSPACE_EVOLUTION.md](WORKSPACE_EVOLUTION.md)**.
+
+Key summary:
+
+| Persona | IDENTITY.md | USER.md | SOUL.md rules | AGENTS.md rules | Skills |
+|---------|-------------|---------|--------------|-----------------|--------|
+| Sofia | Cozy/earthy lo-fi aesthetic | Platforms, schedule, upcoming projects | No listicle, no blog-post tone | Content rhythm, script structure, platform formatting | — |
+| Marcus | Non-technical, list-oriented, max 5 steps | Full Teamflow stack, Andrew as developer | Casual/direct, bite-sized | Slack formatting, copy-paste ready output, iterative drafting | `send-slack-dm` (cont.) |
+| Olena | Concise, direct, efficient | dbt/Postgres stack, monthly workflow, active investigations | Evidence-first, assume messy data, no rushing significance | 7-rule DQ/SQL workflow checklist | `dq-audit`, `handle-db-queries` (cont.) |
+| Aisha | Educational, prioritises the why over direct code | Python beginner, git novice, learning style, projects | Output cleanliness, safety over speed | Teaching approach, pasted AI content handling | — |
+
+**Critical point:** In all 4 cases, Cortex inferred preferences that were never explicitly
+stated. Sofia never said "don't use bullet lists." Marcus never said "delegate to Andrew"
+as a general rule. Olena never said "always run DQ first." Aisha never said "I prefer
+conceptual explanations." These were all inferred from correction and frustration signals
+across sessions and encoded as explicit, persistent, actionable workspace instructions.
 
 ---
 
@@ -716,16 +830,36 @@ the maximum adaptation effect if all proposals are applied. In practice, user fi
 would likely improve quality further by catching imprecise early proposals (the s03 dip
 was partly caused by early proposals the user would have modified).
 
-### 6. Statistical power
+### 6. Workspace isolation and per-persona reset
 
-10 sessions × 3 arms × 4 personas = 110 session-level data points. Per-session
+Each arm runs in a fully separate openclaw instance with its own workspace directory:
+
+- `~/.openclaw-adaptive/workspace/` — adaptive arm workspace
+- `~/.openclaw-baseline/workspace/` — baseline arm workspace
+
+Between personas, `reset_workspace_for_persona()` resets the arm-specific workspace
+to clean defaults before the new persona begins:
+- `IDENTITY.md`, `SOUL.md`, `AGENTS.md` → reset to template defaults
+- `USER.md` → reset to name-only template (persona name pre-seeded, nothing else)
+- `MEMORY.md` and daily memory files → cleared
+- LanceDB vector memory (`memory/main.sqlite`) → truncated
+- `reflect.db` proposals table → cleared
+
+This guarantees Marcus's encoded rules did not carry into Olena's workspace, and
+Olena's DQ workflow did not contaminate Sofia's. Each persona's adaptive arm started
+from an identical blank state. The two instances also run on separate ports (3100
+baseline, 3101 adaptive) so concurrent session traffic never crosses arms.
+
+### 7. Statistical power
+
+10 sessions × 3 arms × 4 personas = 120 session-level data points. Per-session
 helpfulness has high variance (range 1.00–4.43 within a single arm). Individual session
 differences are not statistically reliable in isolation. The thesis can claim directional
 consistency across all 4 personas and at the holdout, but significance claims require
-pooling at the turn level (~1,800 rows) with careful treatment of within-session
-autocorrelation.
+pooling at the turn level (~3,135 turns across 120 sessions, avg 26 turns/session)
+with careful treatment of within-session autocorrelation.
 
-### 7. Approval bottleneck as hidden variable
+### 8. Approval bottleneck as hidden variable
 
 Every adaptation is gated on the approval LLM successfully applying proposals to workspace
 files. If the approval session produces no file edits, the adaptive arm silently degrades
@@ -734,7 +868,7 @@ to Gemini 3.1 Pro for approval sessions resolved it, but the experiment does not
 track "did the approval session mutate files" — some adaptive sessions may run with only
 partial proposal application.
 
-### 8. Continuation workspace reset
+### 9. Continuation workspace reset
 
 The continuation arm uses the s10 adaptive snapshot but clears the SQLite proposals DB
 and LanceDB vector memory before starting. This means Cortex in continuation runs sees
@@ -743,7 +877,32 @@ a primary cause of the saturation problem: Cortex cannot know the workspace is f
 continues generating proposals that add noise. A "workspace delta" mechanism that compares
 new proposals to existing AGENTS.md content before writing would address this.
 
-### 9. Pairwise judgment not implemented
+### 10. No isolation of which adaptation mechanism drove the effect
+
+The experiment measures the system as a whole — it cannot attribute observed gains to
+any specific component of the workspace. Cortex modifies up to five channels per session:
+
+| Channel | What it encodes | Measurably distinct? |
+|---------|----------------|----------------------|
+| `IDENTITY.md` | Agent vibe, tone, aesthetic | No |
+| `USER.md` | User facts, stack, projects | No |
+| `SOUL.md` | Behavioural principles, assumptions | No |
+| `AGENTS.md` | Operational rules, tool instructions | No |
+| LanceDB vector memory | Episodic context, retrieved at session start | No |
+
+All five channels are active simultaneously in the adaptive arm. A helpfulness gain at
+holdout could be driven by AGENTS.md rules (the agent follows the right procedure),
+USER.md facts (the agent references the right stack), SOUL.md principles (the agent
+approaches the task with the right assumptions), or LanceDB memory retrieval (the agent
+recalls relevant prior context). The experiment cannot distinguish these.
+
+This is a meaningful limitation for the thesis: it can claim the *system* adapts
+effectively but not that any specific file or memory mechanism is the load-bearing
+component. Ablation experiments — running adaptive with individual channels disabled
+(e.g., adaptive minus LanceDB, or adaptive with AGENTS.md frozen) — would be required
+to isolate contributions. These were not run.
+
+### 11. Pairwise judgment not implemented
 
 A pairwise LLM judge was designed but not executed: present both arms' responses for the
 same turn to a judge with the persona's full profile and ask which response better serves
