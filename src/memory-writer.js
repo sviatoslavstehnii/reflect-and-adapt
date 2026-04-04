@@ -19,7 +19,7 @@ function createCortexLlms(maxTokens, tags, metadata) {
     metadata,
   });
   const flash = new ChatGoogleGenerativeAI({
-    model: process.env.GOOGLE_MODEL_FLASH || 'gemini-3-flash-preview',
+    model: process.env.GOOGLE_MODEL || 'gemini-3.1-pro-preview',
     apiKey: process.env.GOOGLE_API_KEY,
     temperature: 0,
     maxOutputTokens: maxTokens,
@@ -28,8 +28,8 @@ function createCortexLlms(maxTokens, tags, metadata) {
   });
   const geminiFirst = (process.env.CORTEX_PROVIDER || 'qwen') === 'gemini';
   return geminiFirst
-    ? [{ llm: flash, name: 'Gemini Flash' }, { llm: qwen, name: 'Qwen' }]
-    : [{ llm: qwen, name: 'Qwen' }, { llm: flash, name: 'Gemini Flash' }];
+    ? [{ llm: flash, name: 'Gemini Pro' }, { llm: qwen, name: 'Qwen' }]
+    : [{ llm: qwen, name: 'Qwen' }, { llm: flash, name: 'Gemini Pro' }];
 }
 
 async function invokeStructured(schema, name, messages, options) {

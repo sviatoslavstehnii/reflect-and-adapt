@@ -81,7 +81,7 @@ def _prepare_workspace(
     if setup_py.exists():
         log.info(f"Running setup.py for {scenario_dir.name}")
         subprocess.run(
-            ["python", str(setup_py), "--target", str(data_dir)],
+            ["python3", str(setup_py), "--target", str(data_dir)],
             check=True,
         )
 

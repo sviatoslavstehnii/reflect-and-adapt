@@ -28,7 +28,7 @@ RESULTS_DIR = EXPERIMENTS_DIR / "results"
 PLOTS_DIR = RESULTS_DIR / "plots"
 
 SESSION_ORDER = ["s01", "s02", "s03", "s04", "s05", "s06", "s07", "s08", "s09", "s10"]
-ARM_STYLES = {"adaptive": ("-o", "#2196F3"), ("baseline"): ("--s", "#9E9E9E")}
+ARM_STYLES = {"adaptive": ("-o", "#2196F3"), "baseline": ("--s", "#9E9E9E"), "continuation": ("-^", "#4CAF50")}
 
 
 def load() -> pd.DataFrame:

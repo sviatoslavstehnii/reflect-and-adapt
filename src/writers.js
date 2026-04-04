@@ -30,7 +30,7 @@ function createCortexLlms(maxTokens, tags, metadata) {
     metadata,
   });
   const flash = new ChatGoogleGenerativeAI({
-    model: process.env.GOOGLE_MODEL_FLASH || 'gemini-3-flash-preview',
+    model: process.env.GOOGLE_MODEL || 'gemini-3.1-pro-preview',
     apiKey: process.env.GOOGLE_API_KEY,
     temperature: 0.1,
     maxOutputTokens: maxTokens,

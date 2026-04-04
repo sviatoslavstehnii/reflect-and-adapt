@@ -12,6 +12,11 @@ arms:
     openclaw_dir: "~/.openclaw-adaptive"
     env:
       CORTEX_COOLDOWN_HOURS: "0"
+  continuation:
+    port: 3101
+    openclaw_dir: "~/.openclaw-adaptive"
+    env:
+      CORTEX_COOLDOWN_HOURS: "0"
 
 personas:
   - marcus

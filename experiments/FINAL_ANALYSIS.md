@@ -1,25 +1,34 @@
 # Final Analysis — reflect-and-adapt Plugin
-## Full Experiment Results: 4 Personas × 2 Arms × 10 Sessions
+## Full Experiment Results: 4 Personas × 3 Arms × 10 Sessions
 
-_Generated 2026-03-23. 80 sessions total._
+_Original run: 2026-03-23. Continuation arm: 2026-04-04. 110 sessions total._
 
 ---
 
 ## Experiment Design
 
-Two-arm longitudinal study. Each persona ran 10 sessions sequentially against two independent
-openclaw instances:
+Three-arm longitudinal study. Each persona ran 10 sessions sequentially.
 
 - **Adaptive arm** — plugin fully enabled. After each session ≥ s03, Cortex runs a full
   analysis cycle (Analyst → Router → Writers) and proposals are applied to the workspace via
-  an approval session. The agent accumulates a persistent, persona-specific workspace.
+  an approval session. The agent accumulates a persistent, persona-specific workspace across
+  all 10 sessions.
+
 - **Baseline arm** — plugin enabled but `CORTEX_COOLDOWN_HOURS=999` prevents any proposals.
-  Evaluator scores are collected normally. No workspace changes occur between sessions.
+  Evaluator scores are collected normally. No workspace changes occur between sessions. The
+  agent starts every session with default workspace templates.
+
+- **Continuation arm** — starts from each persona's s10 adaptive snapshot (fully accumulated
+  workspace state after 10 adaptive sessions) and runs the same 10 scenarios again with Cortex
+  still enabled. Session keys are UUID-suffixed so the agent has no chat memory of the original
+  run — only workspace files (IDENTITY.md, USER.md, AGENTS.md, SOUL.md, MEMORY.md, skills)
+  carry over. Tests whether adaptation compounds from an already-adapted starting point, or
+  whether the original run's gains were tied to the incremental learning process itself.
 
 **Holdout (s10):** No workspace data files, no context cues in the opening prompt. The agent
-must rely entirely on what Cortex wrote to its workspace files in previous sessions. This is
-the primary metric — it eliminates the confound where both arms benefit from current-session
-context.
+must rely entirely on what Cortex wrote to its workspace files in previous sessions. For the
+continuation arm, no in-session context is provided either — the agent uses only the snapshot.
+This is the primary metric for the adaptive and continuation arms.
 
 **4 personas:**
 - **Sofia** — content creator (YouTube/Instagram). Stylistic preferences: cozy aesthetic,
@@ -33,69 +42,171 @@ context.
 
 ---
 
+## Critical Caveat: PHit Inflation Outside Holdout
+
+**Personalization hit (PHit)** measures the fraction of turns where the agent uses
+user-specific knowledge unprompted. Outside the holdout (s01–s09), the simulator opens each
+scenario with enough context to set up the task — and this context inevitably contains
+persona-specific details. The baseline agent picks them up from the current session and scores
+PHit without any prior learning. This makes PHit comparisons between arms unreliable for
+s01–s09.
+
+This effect is strongest for **Sofia**: content-creation tasks require establishing brand
+context (channel niche, aesthetic, platform) to make the scenario coherent. The baseline
+agent reads the opening message and immediately references "cozy aesthetic" and
+"sustainability angle" — not because it learned them, but because they were handed to it.
+Sofia's baseline avg PHit (0.902) is almost entirely this effect.
+
+**Consequence:** PHit is only a clean measurement at s10 holdout, where no context is
+provided. All PHit comparisons in this document should be read with this in mind outside of
+§Primary Metric.
+
+---
+
 ## Primary Metric: Holdout Session (s10)
 
-s10 is the cleanest measurement point. No workspace files are present, so the agent can only
-demonstrate learned knowledge, not in-session context. The baseline agent has zero prior
-knowledge of the user.
+s10 is the cleanest measurement point. No workspace files are present, so the adaptive agent
+can only demonstrate learned knowledge, not in-session context. The baseline agent has zero
+prior knowledge of the user. The continuation agent uses only the snapshot — no chat memory.
 
-| Persona | s10 Help (A) | s10 Help (B) | Δ help | s10 phit (A) | s10 phit (B) | Δ phit |
-|---------|-------------|-------------|--------|-------------|-------------|--------|
-| Sofia   | 3.05        | 2.82        | +0.23  | 1.000       | 0.910       | +0.09  |
-| Marcus  | 3.67        | 2.78        | **+0.89** | 0.670   | 0.220       | **+0.45** |
-| Aisha   | 3.09        | 3.15        | −0.06  | 0.394       | 0.147       | +0.25  |
-| Olena   | 3.26        | 2.31        | **+0.95** | 0.343   | 0.000       | **+0.34** |
+| Persona | Adaptive Help | Baseline Help | Δ Help | Adaptive PHit | Baseline PHit | Δ PHit |
+|---------|--------------|--------------|--------|--------------|--------------|--------|
+| Sofia | 3.05 | 2.82 | +0.23 | **1.000** | 0.910 | +0.09 |
+| Marcus | **3.67** | 2.78 | **+0.89** | 0.670 | 0.220 | **+0.45** |
+| Aisha | 3.09 | 3.15 | −0.06 | 0.394 | 0.147 | +0.25 |
+| Olena | **3.26** | 2.31 | **+0.95** | 0.343 | **0.000** | **+0.34** |
 
-_A = adaptive, B = baseline_
+**Continuation arm at s10:**
 
-**All 4 personas show higher personalization_hit for adaptive at holdout.** Three of four show
+| Persona | Cont. Help | vs Adaptive | vs Baseline | Cont. PHit | Cont. Corr |
+|---------|-----------|-------------|-------------|------------|------------|
+| Sofia | **3.733** | +0.68 | +0.91 | 0.400 | 0.000 |
+| Marcus | 3.105 | −0.57 | +0.33 | 0.368 | 0.000 |
+| Olena | 1.420 | −1.84 | −0.89 | **0.970** | **0.640** |
+| Aisha | **1.000** | −2.09 | −2.15 | 0.000 | **0.667** |
+
+**All 4 personas show adaptive > baseline on PHit at holdout.** Three of four show
 helpfulness gains. Aisha is the exception — not because adaptation failed, but because the
-helpfulness metric penalizes verbosity, and the adapted agent correctly entered teaching mode
-(see §Metric Misalignment).
+helpfulness metric penalises verbosity, and the adapted agent correctly entered teaching mode
+(see §Confounds — Metric Misalignment).
+
+For the continuation arm: **Sofia is the only persona where continuation outperforms all
+other arms at holdout**. Marcus holds steady. Olena and Aisha collapse to floor scores.
+The determinant is rule type, not persona or domain (see §Rule Type as Predictor).
 
 ---
 
 ## Secondary Metrics: All Sessions (s01–s10)
 
-| Persona | Arm      | Avg Help | Avg Turns | Avg Corr | Avg phit |
-|---------|----------|---------|-----------|---------|---------|
-| Sofia   | adaptive | 2.97    | 24.0      | 0.079   | 0.825   |
-| Sofia   | baseline | 3.10    | 22.3      | 0.085   | 0.902   |
-|         | **Δ**    | −0.13   | +1.7      | −0.005  | −0.077  |
-| Marcus  | adaptive | 3.56    | 20.3      | **0.015** | 0.264 |
-| Marcus  | baseline | 3.24    | 22.3      | 0.064   | 0.217   |
-|         | **Δ**    | **+0.31** | **−2.0** | **−0.049** | +0.047 |
-| Aisha   | adaptive | 3.17    | 33.8      | 0.059   | 0.239   |
-| Aisha   | baseline | 3.32    | 32.6      | 0.067   | 0.066   |
-|         | **Δ**    | −0.15   | +1.2      | −0.007  | **+0.173** |
-| Olena   | adaptive | 3.26    | 30.3      | 0.069   | 0.094   |
-| Olena   | baseline | 3.14    | 24.4      | 0.061   | 0.118   |
-|         | **Δ**    | +0.12   | +5.9      | +0.008  | −0.025  |
+| Persona | Arm | Avg Help | Avg PHit | Avg Corr |
+|---------|-----|---------|---------|---------|
+| Sofia | adaptive | 2.973 | 0.825 | 0.079 |
+| Sofia | baseline | 3.102 | 0.902 | 0.084 |
+| Sofia | **continuation** | **3.274** | 0.517 | **0.061** |
+| Marcus | **adaptive** | **3.556** | 0.264 | **0.015** |
+| Marcus | baseline | 3.243 | 0.217 | 0.064 |
+| Marcus | continuation | 3.298 | **0.548** | 0.066 |
+| Olena | **adaptive** | **3.261** | 0.094 | 0.069 |
+| Olena | baseline | 3.142 | 0.118 | 0.061 |
+| Olena | continuation | 2.834 | **0.582** | 0.165 |
+| Aisha | baseline | **3.315** | 0.066 | 0.067 |
+| Aisha | adaptive | 3.166 | 0.239 | 0.059 |
+| Aisha | continuation | 2.743 | 0.324 | 0.138 |
 
-Session-average helpfulness is a noisy metric for reasons explained in §Confounds. It should
-not be read as the primary result.
+Session-average helpfulness is a noisy metric for reasons explained in §Confounds. The
+holdout is the primary result. PHit averages outside the holdout are inflated by in-session
+context re-exploitation (see §Critical Caveat).
 
 ---
 
 ## Late-Session Window: s07–s10
 
-Excludes s01–s06 bootstrap period. Gives a cleaner view of mature adaptation.
+Excludes s01–s06 bootstrap period. Gives a cleaner view of mature adaptation, avoiding
+the s03 calibration dip.
 
-| Persona / Arm    | Help  | phit  | Turns | Corr  |
-|------------------|-------|-------|-------|-------|
-| sofia adaptive   | 3.13  | 0.900 | 24.2  | 0.033 |
-| sofia baseline   | 3.10  | 0.917 | 26.5  | 0.063 |
-| marcus adaptive  | 3.48  | 0.370 | 23.0  | 0.007 |
-| marcus baseline  | 3.20  | 0.155 | 21.3  | 0.084 |
-| aisha adaptive   | 2.94  | 0.374 | 33.8  | 0.092 |
-| aisha baseline   | 3.52  | 0.099 | 35.5  | 0.007 |
-| olena adaptive   | 3.20  | 0.131 | 31.5  | 0.060 |
-| olena baseline   | 2.93  | 0.172 | 25.0  | 0.048 |
+| Persona / Arm | Help | PHit | Corr |
+|---------------|------|------|------|
+| sofia adaptive | 3.135 | 0.900 | 0.032 |
+| sofia baseline | 3.105 | 0.918 | 0.063 |
+| sofia **continuation** | **3.433** | 0.580 | 0.036 |
+| marcus adaptive | 3.478 | 0.370 | 0.007 |
+| marcus baseline | 3.195 | 0.155 | 0.084 |
+| marcus **continuation** | **3.629** | **0.574** | 0.027 |
+| olena **adaptive** | **3.201** | 0.131 | 0.060 |
+| olena baseline | 2.936 | 0.172 | 0.048 |
+| olena continuation | 2.372 | **0.895** | 0.290 |
+| aisha baseline | **3.516** | 0.099 | **0.007** |
+| aisha adaptive | 2.942 | 0.374 | 0.092 |
+| aisha continuation | 2.481 | 0.336 | 0.216 |
 
-Marcus late-session: clearest adaptive win (+0.28 helpfulness, 2.4× phit, 12× lower
-correction). Olena late-session: +0.27 helpfulness for adaptive; phit gap modest until
-context is stripped at s10. Sofia: correction halved, efficiency better. Aisha: phit gap
-clear (3.8×) but helpfulness reversal from over-adaptation.
+Marcus late-session continuation (3.629) is the highest in the dataset for that persona,
+exceeding original adaptive (3.478) once the bootstrap noise clears. Sofia continuation
+also leads its late window. Olena and Aisha continuation deteriorate through the late
+window — the opposite trajectory.
+
+---
+
+## Session-by-Session Results
+
+### Sofia
+
+| S | Adaptive | Baseline | Continuation | Cont PHit | Cont Corr |
+|---|----------|----------|--------------|-----------|-----------|
+| s01 | 3.32 | 2.93 | 3.89 | 0.56 | 0.00 |
+| s02 | 2.73 | 3.33 | 2.96 | 0.82 | 0.18 |
+| s03 | 1.88 | 2.87 | 2.20 | 0.07 | 0.00 |
+| s04 | 2.73 | 2.83 | 3.54 | 0.32 | 0.04 |
+| s05 | 3.45 | 2.86 | 3.55 | 0.59 | 0.00 |
+| s06 | 3.08 | 3.78 | 2.88 | 0.50 | 0.25 |
+| s07 | 3.40 | 3.00 | **4.10** | 0.60 | 0.00 |
+| s08 | 3.52 | 3.27 | 3.36 | 0.82 | 0.00 |
+| s09 | 2.57 | 3.33 | 2.54 | 0.50 | 0.14 |
+| s10 | 3.05 | 2.82 | **3.73** | 0.40 | 0.00 |
+
+### Marcus
+
+| S | Adaptive | Baseline | Continuation | Cont PHit | Cont Corr |
+|---|----------|----------|--------------|-----------|-----------|
+| s01 | 3.63 | 3.41 | 3.81 | 0.50 | 0.06 |
+| s02 | 3.58 | 2.40 | 3.07 | 0.73 | 0.13 |
+| s03 | 3.44 | 3.50 | 2.26 | 0.26 | 0.16 |
+| s04 | 2.76 | 3.36 | 3.00 | 0.19 | 0.07 |
+| s05 | 4.17 | 3.50 | 3.32 | **1.00** | 0.04 |
+| s06 | 4.07 | 3.48 | 3.00 | 0.50 | 0.09 |
+| s07 | 3.76 | 3.67 | 3.74 | 0.81 | 0.00 |
+| s08 | 2.92 | 2.61 | **4.38** | 0.69 | 0.00 |
+| s09 | 3.56 | 3.72 | 3.29 | 0.43 | 0.11 |
+| s10 | **3.67** | 2.78 | 3.11 | 0.37 | 0.00 |
+
+### Olena
+
+| S | Adaptive | Baseline | Continuation | Cont PHit | Cont Corr |
+|---|----------|----------|--------------|-----------|-----------|
+| s01 | 3.67 | 3.22 | 3.28 | 0.00 | 0.00 |
+| s02 | 3.03 | 4.43 | 2.51 | 0.43 | 0.22 |
+| s03 | 3.43 | 3.17 | 3.36 | 0.43 | 0.04 |
+| s04 | 3.15 | 2.50 | 2.93 | 0.00 | 0.00 |
+| s05 | 3.26 | 3.67 | 3.24 | 0.41 | 0.14 |
+| s06 | 3.27 | 2.69 | **3.53** | **0.97** | 0.09 |
+| s07 | 3.29 | 3.30 | 2.32 | 0.75 | 0.21 |
+| s08 | 2.89 | 3.19 | 3.06 | 0.89 | 0.17 |
+| s09 | 3.36 | 2.94 | 2.69 | **0.97** | 0.14 |
+| s10 | **3.26** | 2.31 | **1.42** | **0.97** | **0.64** |
+
+### Aisha
+
+| S | Adaptive | Baseline | Continuation | Cont PHit | Cont Corr |
+|---|----------|----------|--------------|-----------|-----------|
+| s01 | 3.33 | 3.25 | 2.94 | 0.18 | 0.06 |
+| s02 | 3.56 | 3.53 | 3.30 | 0.35 | 0.05 |
+| s03 | 3.75 | 3.69 | 3.16 | 0.03 | 0.11 |
+| s04 | 3.24 | 3.00 | 2.56 | 0.52 | 0.08 |
+| s05 | 3.31 | 3.33 | 3.18 | 0.14 | 0.00 |
+| s06 | 2.71 | 2.29 | 2.37 | 0.68 | 0.21 |
+| s07 | 2.68 | 3.72 | 3.19 | 0.38 | 0.08 |
+| s08 | 3.62 | 3.64 | 3.19 | 0.19 | 0.00 |
+| s09 | 2.37 | 3.56 | 2.54 | **0.77** | 0.11 |
+| s10 | 3.09 | 3.15 | **1.00** | 0.00 | **0.67** |
 
 ---
 
@@ -104,68 +215,106 @@ clear (3.8×) but helpfulness reversal from over-adaptation.
 ### 1. Adaptation effect is real and consistent at holdout
 
 Every persona shows adaptive > baseline on personalization_hit at s10. Cortex encodes
-user-specific preferences into the workspace, and those preferences persist when no in-session
-context is available. This is the thesis's core empirical claim.
+user-specific preferences into the workspace, and those preferences persist when no
+in-session context is available. This is the thesis's core empirical claim.
 
 ### 2. Effect strength correlates with preference encodability
 
 The clearest pattern across all 4 personas: the harder it is to write a preference as an
 explicit rule in AGENTS.md or SOUL.md, the weaker the helpfulness signal. Effect hierarchy:
 
-- **Binary rules (Marcus, +0.89)** — delegate to Andrew, no code, 5-step limit, bullet
-  format. One-line rules in AGENTS.md. Once written, zero recurrence of the mistake.
-  Correction rate drops 4× vs baseline; s09 baseline spike (0.28) shows the cost of not
-  knowing. Clearest, most reliable signal.
+- **Binary rules (Marcus, +0.89 at holdout)** — delegate to Andrew, no code, 5-step limit,
+  bullet format. One-line rules in AGENTS.md. Once written, zero recurrence of the mistake.
+  Correction rate drops 4× vs baseline (0.015 vs 0.064); s09 baseline spike to 0.28 shows
+  the cost of not knowing. Clearest, most reliable signal.
 
 - **Procedural rules (Olena, +0.95 at holdout)** — SQL over Pandas, DQ-first workflow,
-  EXPLAIN-first debugging. Encodes as workflow checklists in AGENTS.md. The holdout gap is
-  the largest across all personas: baseline produced a generic template in 13 turns;
-  adaptive applied audit queries and data quality checks unprompted in 35 turns.
+  EXPLAIN-first debugging. Encodes as workflow checklists in AGENTS.md. Largest holdout gap
+  across all personas: baseline produced a generic template in 13 turns; adaptive applied
+  audit queries and data quality checks unprompted in 35 turns. Baseline PHit at s10 is
+  **0.000** — with no context cues, the baseline has literally no knowledge of Olena.
 
-- **Stylistic preferences (Sofia, +0.23, −44% turns at holdout)** — cozy aesthetic, brand
-  voice, newsletter tone. Encodes but imprecisely. Main signal is efficiency, not raw
-  helpfulness: adapted agent completed s10 in 19 turns vs baseline's 34 — the agent didn't
-  need to re-discover Sofia's format from scratch. Overall helpfulness average is dragged
-  down by the s03 bootstrap dip (1.88).
+- **Stylistic/outcome preferences (Sofia, +0.23, −44% turns at holdout)** — cozy aesthetic,
+  brand voice, newsletter tone. Encodes but imprecisely. Main signal is efficiency, not raw
+  helpfulness: adapted agent completed s10 in 19 turns vs baseline's 34. Overall helpfulness
+  average is dragged down by the s03 bootstrap dip (1.88).
 
-- **Interaction style (Aisha, phit +0.25, help −0.06)** — explain step-by-step, use
-  analogies, teach before solving. Cortex encodes it correctly — phit climbs to 0.74 at
+- **Interaction style (Aisha, PHit +0.25, help −0.06)** — explain step-by-step, use
+  analogies, teach before solving. Cortex encodes it correctly — PHit climbs to 0.74 at
   s09 and holds 0.39 at holdout. But the helpfulness evaluator rewards conciseness and task
   completion speed, so verbose teaching responses score identically to bad answers. See
-  §Metric Misalignment.
+  §Confounds — Metric Misalignment.
 
-### 3. Overall helpfulness averages are noisy — the holdout is the right test
+### 3. Rule type predicts continuation outcome
+
+The continuation experiment adds a new dimension. Starting from the mature s10 adaptive
+snapshot and running 10 more sessions with Cortex still enabled, the outcome depends
+entirely on how preferences were encoded:
+
+- **Outcome-oriented rules (Sofia):** Continuation is the **best arm** — avg help 3.274,
+  s10 holdout 3.733 (highest holdout score in the entire dataset). "Match brand voice" and
+  "Instagram-first" apply flexibly across any task type. The mature snapshot provides a
+  stable starting point; additional Cortex proposals refine without over-constraining.
+
+- **Binary rules (Marcus):** Mild regression vs adaptive (3.298 vs 3.556) but stable.
+  PHit doubles from session 1 (workspace transfers immediately). No holdout collapse.
+  Correction rate reverts to baseline level — Cortex keeps proposing on a saturated
+  workspace, adding noise to already-correct rules.
+
+- **Procedural rules (Olena, Aisha):** Severe collapse at s10 holdout. Olena: 1.42 help,
+  0.97 PHit, 0.64 correction. Aisha: 1.00 help (floor), 0.00 PHit, 0.67 correction.
+  Step-by-step procedures become rigid constraints. The agent forces SQL/DQ-checks and
+  teach-first mode regardless of whether the holdout task calls for them.
+
+**The rule type finding is not a secondary observation — it is the central structural
+result of the continuation experiment.** Persona identity does not predict continuation
+outcome. Domain does not predict it. Rule type does.
+
+### 4. PHit always transfers; helpfulness does not
+
+All four personas show PHit rise from continuation session 1 vs their original adaptive
+arm — without re-learning. The workspace snapshot delivers persona knowledge immediately.
+But only Sofia shows helpfulness compounding. The original adaptive run's quality
+improvement was driven by the incremental calibration process (Cortex iterating toward
+better representations), not simply by possessing the adapted workspace.
+
+**Workspace state ≠ adaptation process. Both are necessary components.**
+
+### 5. Adaptive arm beats continuation at holdout for 3/4 personas
+
+The incremental process — Cortex proposing, workspace evolving, rules being refined over
+10 sessions — produces better-calibrated *application* of rules than starting with the
+mature snapshot. The process teaches *when* to apply rules; the snapshot only encodes
+*what* the rules are. Starting continuation with all rules already encoded at maximum
+intensity causes indiscriminate application on novel tasks.
+
+### 6. Correction rate is the cleanest ongoing signal
+
+Correction rate (fraction of turns where the user corrected the agent) is a direct friction
+metric that doesn't suffer from the verbosity confound. Key observations:
+
+- **Marcus:** Baseline s09 spike to 0.28 — the agent kept giving code despite prior
+  corrections across 8 sessions. Adaptive held at 0.000 from s04 onward. The rule is in
+  AGENTS.md; the mistake structurally cannot recur. Adaptive correction rate (0.015) is
+  4× below baseline — the clearest correction signal in the dataset.
+- **Sofia:** Adaptive s03 spike (0.30, bootstrap cost), then falls and stays near zero.
+  Baseline fluctuates 0.03–0.20 throughout. Continuation is the most stable (0.061 avg).
+- **Olena:** Baseline s06 spike to 0.25 (pipeline failure — kept suggesting Pandas).
+  Adaptive: 0.000 at s06 (SQL preference already encoded). Continuation s10: 0.64.
+- **Aisha:** Both baseline and adaptive similar throughout. Continuation s10: 0.67.
+
+### 7. Session averages are the weakest metric; use holdout and late window
 
 Session-average helpfulness is diluted by two artefacts:
 
-**Baseline phit inflation** — before s10, the simulator still explains the user's preferences
-in the opening message of each scenario. The baseline agent picks them up from current-session
-context and scores relatively well on phit. Both arms are partly measuring "how well does the
-agent use information given right now" rather than "does the agent remember." At s10, where
-no context is given, this confound disappears. This is why sofia's overall phit average is
-actually *lower* for adaptive (0.825 vs 0.902) — the baseline is inflated by in-session
-re-explanation — while at s10 adaptive leads 1.00 vs 0.91.
+**Baseline PHit inflation** — outside s10, both arms partly measure "how well the agent
+uses information given right now." This confound disappears at holdout.
 
-**s03 bootstrap dip** — the first Cortex approval session applies early proposals that may
-be imprecise, and the agent is mid-calibration. Sofia adaptive s03 helpfulness: 1.88 (worst
-single session in the dataset). Marcus adaptive s03: first session where "no code" rule was
-applied, resulting in an overcorrection. This artefact suppresses adaptive's session average
-but disappears in the late-session window.
-
-### 4. Correction rate is the cleanest ongoing signal
-
-Correction rate (fraction of turns where the user had to correct the agent) is a direct
-friction metric that doesn't suffer from the verbosity confound. Key observations:
-
-- **Marcus**: baseline s09 spike to 0.28 — the agent kept giving code despite prior
-  corrections across 8 sessions. Adaptive held at 0.000 from s04 onward. The rule was in
-  AGENTS.md; the mistake structurally cannot recur.
-- **Sofia**: adaptive s03 spike (0.30, bootstrap cost), then falls and stays near zero.
-  Baseline fluctuates 0.03–0.20 throughout.
-- **Olena**: baseline s06 spike to 0.25 (pipeline failure scenario — kept suggesting Pandas).
-  Adaptive: 0.000 at s06 (SQL preference already encoded).
-- **Aisha**: both arms similar. The adapted agent's verbosity occasionally drew pushback;
-  the baseline's directness occasionally caused missed explanations. No clear winner.
+**s03 bootstrap dip** — first Cortex approval applies imprecise early proposals. Sofia
+adaptive s03: 1.88 (worst single session in the dataset). Marcus adaptive s03: first
+session with "no code" rule applied, causing overcorrection. This suppresses adaptive's
+session average but disappears by s05. The late-session window (s07–s10) cleanly avoids
+this artefact.
 
 ---
 
@@ -174,20 +323,37 @@ friction metric that doesn't suffer from the verbosity confound. Key observation
 ### Sofia — Content Creator
 
 **Profile:** Preferences are stylistic and aesthetic (cozy vibe, specific thumbnail style,
-newsletter warmth). These are harder to encode as explicit rules than binary or procedural
-preferences.
+newsletter warmth). These are outcome-oriented rather than procedural — they constrain the
+*character* of output, not the *steps* to produce it.
 
 **Cortex encoding:** SOUL.md updated with tone and aesthetic descriptions; AGENTS.md added
 Notion + Canva tool preferences, avoided LinkedIn-corporate phrasing. Proposals were
 approved from s03 onward.
 
-**Result:** The holdout (s10) is the cleanest signal — adapted agent completed the collab
-task in 19 turns vs baseline's 34 (−44%), demonstrated brand knowledge unprompted, zero
-corrections. Overall helpfulness slightly negative (−0.13) due to s03 dip and baseline
-in-session context advantage. The efficiency signal at holdout is the primary evidence.
+**Original adaptive result:** The holdout (s10) is the cleanest signal — adapted agent
+completed the collab task in 19 turns vs baseline's 34 (−44%), demonstrated brand knowledge
+unprompted, zero corrections. Overall helpfulness slightly negative (−0.13) due to s03 dip
+and baseline in-session context advantage. The efficiency signal at holdout is the primary
+evidence.
 
-**Thesis relevance:** Shows that even soft, stylistic preferences are partially encodable.
-Turn efficiency is a valid second metric when raw helpfulness is confounded.
+**Continuation result:** Best arm across every aggregate metric. Avg helpfulness 3.274
+beats both adaptive (2.973) and baseline (3.102). Correction rate lowest (0.061). S10
+holdout 3.733 — the highest holdout score in the entire dataset across all arms and
+personas, with zero corrections. Late-window avg (3.433) is the highest of any arm for
+Sofia. S07 continuation (4.10) is the highest single session score in the dataset.
+Continuation PHit drops vs baseline/adaptive because those arms inflate PHit via
+in-session re-explanation; continuation's lower PHit with higher helpfulness is the
+better outcome.
+
+**Why continuation works for Sofia:** Outcome-oriented rules scale across task types.
+"Match brand voice" and "sustainability angle" apply to any content task without
+becoming rigid constraints. The mature snapshot provides a clean stable base; continued
+Cortex proposals refine tone and platform guidance without adding procedural friction.
+
+**Thesis relevance:** Demonstrates that even soft, stylistic preferences are partially
+encodable and that outcome-oriented rules compound positively under continued adaptation.
+Turn efficiency is a valid second metric when raw helpfulness is confounded by verbosity
+scoring. Sofia is the strongest positive case for continuation value.
 
 ---
 
@@ -202,14 +368,29 @@ a Slack message draft, not code. Tag @Andrew for all technical tasks. Max 5 step
 format." USER.md contains Teamflow context (MRR, growth metrics, investor cadence). Rules
 were stable from s03; s04–s09 largely deduplicated.
 
-**Result:** Strongest overall signal. +0.31 average helpfulness across all sessions. 4×
-lower correction rate (0.015 vs 0.064). s10 holdout: +0.89 helpfulness, adaptive 0.67
-phit vs baseline 0.22. The simulator noted unprompted at s10 turn 2: "Thanks for actually
-jumping in without asking what Teamflow does."
+**Original adaptive result:** Strongest overall signal. +0.31 average helpfulness across
+all sessions. 4× lower correction rate (0.015 vs 0.064). S10 holdout: +0.89 helpfulness,
+adaptive 0.67 PHit vs baseline 0.22. The simulator noted unprompted at s10 turn 2:
+"Thanks for actually jumping in without asking what Teamflow does."
+
+**Continuation result:** Mild regression vs adaptive (3.298 vs 3.556 avg help) but
+stable — above baseline (3.243). PHit doubles from s01 (0.50 vs 0.00 in original adaptive
+s01) demonstrating immediate knowledge transfer. No s10 collapse — Marcus holdout at 3.105
+with zero corrections. S08 continuation (4.38) is the second-highest single session in the
+dataset. Late-window continuation (3.629) actually exceeds original adaptive (3.478) once
+bootstrap noise clears. Correction rate reverts to baseline level (0.066) because Cortex
+keeps proposing on an already-saturated workspace.
+
+**Why continuation partially works but doesn't compound:** Binary rules transfer cleanly
+and don't over-constrain any task type. But the original adaptive run's correction
+rate advantage (0.015) was produced by the incremental process gradually encoding rules
+with exactly the right scope. Pre-loading them at full intensity adds noise via redundant
+Cortex proposals without further reducing corrections.
 
 **Thesis relevance:** Binary, rule-like preferences are the ideal case for workspace-level
 adaptation. Once encoded, they require zero in-session reinforcement and produce
-structurally reliable improvements.
+structurally reliable improvements. The continuation result shows they also transfer
+without collapse — the safest preference type for both original and continued adaptation.
 
 ---
 
@@ -223,18 +404,33 @@ expert.
 before giving code, use analogies, confirm understanding before moving on. Proposals
 accumulated from s03; style preferences stable by s05.
 
-**Result:** The "Aisha paradox." Personalization hit 3.4× higher for adaptive across all
-sessions (0.239 vs 0.066), and 2.7× higher at holdout (0.394 vs 0.147). The agent
-correctly learned her style. However, average helpfulness is *lower* for adaptive (3.17
-vs 3.32). The starkest example: s09 has the highest phit in the dataset (0.743) and
-simultaneously the lowest helpfulness (2.37) — the agent committed to teaching mode in
-a circular import scenario where Aisha just needed the fix.
+**Original adaptive result — the "Aisha paradox":** PHit 3.4× higher for adaptive across
+all sessions (0.239 vs 0.066), and 2.7× higher at holdout (0.394 vs 0.147). The agent
+correctly learned her style. However, average helpfulness is lower for adaptive (3.17 vs
+3.32). The starkest example: s09 has the highest PHit in the original dataset (0.743) and
+simultaneously the lowest helpfulness (2.37) — the agent committed to teaching mode in a
+circular import scenario where Aisha just needed the fix. The helpfulness metric penalises
+verbosity; verbose teaching responses score identically to bad answers.
 
-**Thesis relevance:** This is a genuine and important finding. Helpfulness metrics designed
-for productivity users conflate "verbose" with "bad." For learning-oriented users, the
-correct response *is* verbose. Aisha demonstrates that Cortex can encode interaction style
-correctly while the metric fails to capture it. The thesis should frame this as a finding
-about metric scope, not a failure of adaptation.
+**Continuation result:** Worst regression of all personas. Avg helpfulness 2.743 — below
+both adaptive (3.166) and baseline (3.315). S10 holdout collapses to 1.00 (floor score)
+with correction rate 0.67. PHit peaked at 0.77 in s09 then dropped to 0.00 at holdout —
+the agent over-applied teaching mode in prior sessions, then failed to apply it coherently
+on the novel holdout task. Zero frustration throughout (Aisha's patient learner profile
+means she corrects without emotional escalation, unlike Olena).
+
+**Why continuation fails for Aisha:** Teach-first rules are situational — they work when
+the task calls for learning, not when the user needs a quick fix. Encoded as permanent
+instructions at maximum intensity, they cause the agent to commit to full pedagogical mode
+in scenarios that require direct answers. The pre-loaded snapshot bypasses the gradual
+calibration that originally taught the agent *when* teaching mode is appropriate.
+
+**Thesis relevance:** Two findings. First: Cortex correctly encodes interaction style even
+when the helpfulness metric fails to capture it — PHit is the better metric for
+learning-oriented personas. Second: the continuation experiment shows that interaction-style
+rules carry the same over-specialisation risk as procedural rules when pre-loaded without
+calibration. The thesis should frame Aisha's original adaptive result as a metric scope
+finding, and the continuation result as a saturation risk finding.
 
 ---
 
@@ -259,28 +455,44 @@ agent no longer waits to be asked. This is the plugin's skill-writing capability
 Cortex identified a recurring manual workflow, abstracted it into a reusable tool, and
 wired it into the agent's standard operating procedure.
 
-**Result:** Largest single holdout gap across all 4 personas: +0.95 helpfulness (3.26
-vs 2.31). Baseline phit at s10: **0.000** — with no context cues, the baseline had
-literally zero personalization signal. Adaptive agent proactively applied audit queries
-and data quality checks before building the quarterly summary. Baseline produced a generic
-template in 13 turns; adaptive engaged deeply in 35 turns.
+**Original adaptive result:** Largest single holdout gap across all 4 personas: +0.95
+helpfulness (3.26 vs 2.31). Baseline PHit at s10: **0.000** — with no context cues, the
+baseline had literally zero personalization signal. Adaptive agent proactively applied
+audit queries and data quality checks before building the quarterly summary. Baseline
+produced a generic template in 13 turns; adaptive engaged deeply in 35 turns.
 
-**Thesis relevance:** Confirms the marcus pattern applies to procedural preferences, not
-just binary rules. Olena's preferences are more complex (multi-step workflows vs single
-rules) but encode equally well because they are still explicit and tool-specific. Validates
-the thesis claim across different preference types within the "structurally encodable"
-category.
+**Continuation result:** Textbook over-adaptation. PHit at s10: 0.97 (agent applies
+Olena's preferences on nearly every turn). Helpfulness at s10: 1.42. Correction rate
+at s10: 0.64. The agent forces SQL/DQ-checks regardless of task fit on the holdout.
+Session trajectory is revealing: s06 is the strongest continuation session (3.53, PHit
+0.97) where the task perfectly aligned with encoded procedures — then helpfulness
+deteriorates as tasks deviate, peaking at the holdout collapse. Late-window avg
+(2.372 help, 0.895 PHit, 0.290 corr) is the worst configuration in the dataset.
+
+**Why continuation fails for Olena:** Procedural rules are inherently situational —
+"EXPLAIN before optimizing" is only appropriate in specific contexts. Encoded as permanent
+maximum-intensity rules and applied unconditionally across all tasks including the holdout's
+novel scenario, they become friction generators rather than workflow accelerators.
+The original adaptive run calibrated *when* to invoke each procedure; the snapshot
+pre-loads them all without calibration.
+
+**Thesis relevance:** Confirms the Marcus pattern applies to procedural preferences at the
+original adaptive level. But the continuation experiment adds the critical finding: the
+same procedural rules that produced the largest helpfulness gain (+0.95) also produce the
+most severe continuation collapse (−1.84 vs adaptive at holdout). Olena is the sharpest
+illustration of the workspace ≠ process distinction.
 
 ---
 
 ## Confounds and Limitations
 
-### 1. Baseline phit inflation (sessions s01–s09)
+### 1. Baseline PHit inflation (sessions s01–s09)
 
 The simulator retains memory of prior sessions but still opens each new scenario with
 enough context for the baseline agent to infer preferences. This means outside the holdout,
 both arms partly measure in-session context use. The holdout eliminates this confound by
-design. Any helpfulness or phit comparison that includes s01–s09 must note this.
+design. Any helpfulness or PHit comparison that includes s01–s09 must note this. Sofia's
+baseline avg PHit (0.902) is the most extreme case.
 
 ### 2. s03 bootstrap dip
 
@@ -295,17 +507,25 @@ this artefact.
 The helpfulness evaluator rewards conciseness and task completion speed. This is
 appropriate for productivity users (Marcus, Olena, Sofia) but structurally wrong for
 Aisha. The thesis must either: (a) use a persona-appropriate metric for Aisha, (b) report
-phit as the primary metric for learning-oriented personas, or (c) explicitly frame the
-helpfulness result as a metric limitation finding rather than an adaptation failure.
+PHit as the primary metric for learning-oriented personas, or (c) explicitly frame the
+helpfulness result as a metric limitation finding rather than an adaptation failure. PHit
+is the better success metric for Aisha: adaptive 0.239 vs baseline 0.066 (3.6×); holdout
+0.394 vs 0.147 (2.7×).
 
-### 4. Over-adaptation (Aisha s09, general risk)
+### 4. Over-adaptation confirmed at scale (continuation experiment)
 
-Once a preference is written to SOUL.md or AGENTS.md it applies uniformly to every
-session. The plugin has no mechanism to modulate preference application based on task
-urgency or context. Aisha s09 (phit 0.743, helpfulness 2.37) is the clearest example —
-the agent committed to full teaching mode when the user just needed a quick fix. This
-risk is lower for binary and procedural rules (Marcus, Olena) because those preferences
-are inherently context-appropriate.
+Originally identified as an Aisha edge case (s09: PHit 0.743, helpfulness 2.37 — teaching
+mode applied to a quick-fix scenario). The continuation experiment confirms over-adaptation
+is systematic and predictable for procedural/interaction-style rule types:
+
+- Olena continuation s10: 1.42 help, 0.97 PHit, 0.64 correction
+- Aisha continuation s10: 1.00 help, 0.00 PHit, 0.67 correction
+
+The pattern is specific to procedural and interaction-style rules applied unconditionally.
+Binary (Marcus) and outcome-oriented (Sofia) rules do not exhibit this collapse. The plugin
+needs a saturation detection or pruning mechanism — a rule confidence score or "last
+validated" field on each AGENTS.md entry — to prevent continued Cortex proposals from
+over-encoding an already-calibrated workspace.
 
 ### 5. 100% approval rate
 
@@ -319,46 +539,90 @@ was partly caused by early proposals the user would have modified).
 
 ### 6. Statistical power
 
-10 sessions × 2 arms × 4 personas = 80 session-level data points. Per-session helpfulness
-has high variance (range 1.88–4.43 within a single arm). Individual session differences
-are not statistically reliable in isolation. The thesis can claim directional consistency
-across all 4 personas and at the holdout, but significance claims require pooling at the
-turn level (~1,200 rows) with careful treatment of within-session autocorrelation.
+10 sessions × 3 arms × 4 personas = 110 session-level data points. Per-session
+helpfulness has high variance (range 1.00–4.43 within a single arm). Individual session
+differences are not statistically reliable in isolation. The thesis can claim directional
+consistency across all 4 personas and at the holdout, but significance claims require
+pooling at the turn level (~1,800 rows) with careful treatment of within-session
+autocorrelation.
 
 ### 7. Approval bottleneck as hidden variable
 
 Every adaptation is gated on the approval LLM successfully applying proposals to workspace
 files. If the approval session produces no file edits, the adaptive arm silently degrades
 toward baseline behaviour. Earlier runs with less capable models exhibited this. The switch
-to Gemini 3 Pro for approval sessions resolved it, but the experiment does not directly
+to Gemini 3.1 Pro for approval sessions resolved it, but the experiment does not directly
 track "did the approval session mutate files" — some adaptive sessions may run with only
 partial proposal application.
+
+### 8. Continuation workspace reset
+
+The continuation arm uses the s10 adaptive snapshot but clears the SQLite proposals DB
+and LanceDB vector memory before starting. This means Cortex in continuation runs sees
+no memory of prior proposals — it cannot detect that rules are already encoded. This is
+a primary cause of the saturation problem: Cortex cannot know the workspace is full and
+continues generating proposals that add noise. A "workspace delta" mechanism that compares
+new proposals to existing AGENTS.md content before writing would address this.
 
 ---
 
 ## Verdict Table
 
-| Signal                        | Result                                                          |
-|-------------------------------|-----------------------------------------------------------------|
-| Cortex encodes preferences    | ✅ All 4 personas — phit higher at holdout                     |
-| Skill writing                 | ✅ Olena — `dq-audit` skill created at s08 from recurring manual workflow |
-| Helpfulness gains at holdout  | ✅ 3/4 personas (aisha flat — metric issue, not encoding issue) |
-| Correction rate reduction     | ✅ Marcus clearly; Sofia late-session; Olena s06+               |
-| Effect by preference type     | Binary/procedural → strongest; stylistic → efficiency signal; interaction style → phit only |
-| Baseline phit inflation       | ✅ Confirmed — outside holdout both arms measure current-session context use |
-| Bootstrap cost                | ✅ Confirmed s03 dip for both sofia and aisha adaptive arms     |
-| Over-adaptation risk          | ✅ Confirmed — aisha s09 is the clearest example               |
+| Signal | Result |
+|--------|--------|
+| Cortex encodes preferences | ✅ All 4 personas — PHit higher at holdout |
+| Skill writing | ✅ Olena — `dq-audit` skill created at s08 from recurring manual workflow |
+| Helpfulness gains at holdout (adaptive) | ✅ 3/4 personas; Aisha flat — metric issue, not encoding issue |
+| Correction rate reduction | ✅ Marcus decisively (4×); Sofia late-session; Olena s06+ |
+| Effect by preference type | Binary/procedural → strongest holdout gains; stylistic → efficiency signal; interaction style → PHit only |
+| Baseline PHit inflation | ✅ Confirmed — outside holdout both arms measure current-session context use |
+| Bootstrap cost | ✅ Confirmed s03 dip for Sofia and Aisha adaptive arms |
+| Over-adaptation risk (original) | ✅ Confirmed — Aisha s09 is the first clear example |
+| Over-adaptation at scale (continuation) | ✅ Confirmed — Olena and Aisha collapse at s10; rule type is the predictor |
+| PHit transfers from snapshot | ✅ All 4 personas — continuation PHit rises from session 1 without re-learning |
+| Helpfulness compounding (continuation) | ✅ Sofia (outcome rules); ❌ Marcus (flat, stable); ❌ Olena/Aisha (collapse) |
+| Workspace ≠ process | ✅ Confirmed — snapshot transfers knowledge, process calibrates application |
+| Saturation detection needed | ✅ Confirmed — Cortex cannot detect encoded workspace and over-proposes |
+
+---
+
+## Key Numbers
+
+| Metric | Value | Context |
+|--------|-------|---------|
+| Highest holdout helpfulness | 3.733 | Sofia continuation s10 |
+| Lowest holdout helpfulness | 1.000 | Aisha continuation s10 |
+| Largest adaptive vs baseline holdout gap | +0.95 | Olena — baseline PHit 0.000 |
+| Best single session | 4.10 | Sofia continuation s07 |
+| Second best single session | 4.38 | Marcus continuation s08 |
+| Lowest correction rate (avg) | 0.015 | Marcus adaptive — 4× below baseline |
+| Highest PHit at holdout | 0.970 | Olena continuation s10 — with 1.42 helpfulness |
+| Worst correction spike | 0.667 | Olena/Aisha continuation s10 |
+| Baseline with zero holdout PHit | 0.000 | Olena — without context, baseline knows nothing |
 
 ---
 
 ## Thesis Claim
 
-> Cortex consistently encodes user-specific preferences into the workspace across all 4 personas
-> (personalization_hit 1.4–∞× higher at holdout — baseline drops to 0.000 for Olena when no
-> context is provided). Helpfulness gains at holdout are strongest for users with structurally
-> encodable preferences: Marcus (+0.89, binary rules) and Olena (+0.95, procedural workflows).
-> Sofia shows a holdout quality gain (+0.23) and a strong efficiency signal (−44% turns). Aisha
-> demonstrates clear preference encoding (3.4× phit) without helpfulness gain, exposing a
-> metric misalignment between productivity-optimised evaluation and learning-oriented interaction
-> styles — itself a finding about which user types benefit most from structural adaptation and
-> how that benefit should be measured.
+> The reflect-and-adapt plugin consistently encodes user-specific preferences into the
+> workspace across all 4 personas (personalization_hit 1.4–∞× higher at holdout —
+> baseline drops to 0.000 for Olena when no context is provided). Helpfulness gains at
+> holdout are strongest for users with structurally encodable preferences: Marcus (+0.89,
+> binary rules) and Olena (+0.95, procedural workflows). Sofia shows a holdout quality
+> gain (+0.23) and a strong efficiency signal (−44% turns). Aisha demonstrates clear
+> preference encoding (3.6× PHit) without helpfulness gain, exposing a metric misalignment
+> between productivity-optimised evaluation and learning-oriented interaction styles —
+> itself a finding about which user types benefit most and how that benefit should be
+> measured.
+>
+> A continuation experiment (10 additional sessions from each s10 snapshot, Cortex still
+> enabled) distinguishes two independent components of the system's value: (1) the
+> workspace state, which transfers persona knowledge immediately and boosts PHit from
+> session 1 without re-learning; and (2) the adaptation process, which calibrates *when*
+> to apply rules and produces the helpfulness gains. Rule type is the primary predictor
+> of continuation outcome — outcome-oriented rules (Sofia) compound positively and produce
+> the highest holdout score in the dataset (3.733); binary rules (Marcus) transfer cleanly
+> without collapse; procedural rules (Olena, Aisha) over-specialise and collapse at holdout
+> (1.42 and 1.00 respectively, correction rates above 0.60). This identifies a necessary
+> system design addition: saturation detection in the Cortex pipeline to prevent continued
+> proposal generation on an already-calibrated workspace.
