@@ -1,5 +1,5 @@
 """
-User simulator powered by Azure OpenAI GPT-4.1 (Qwen 3.5 Plus as fallback).
+User simulator powered by Azure OpenAI GPT-4.1 (Gemini Flash as fallback).
 
 Given a persona definition, scenario definition, and conversation history so far,
 generates the next user message. Returns None when the task is considered complete.
