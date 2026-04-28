@@ -31,21 +31,3 @@ communication_style: |
   You always prefer UI/dashboard solutions over command-line solutions.
   You never want to learn a new CLI tool.
   When a task requires code changes, you want a message you can paste to Andrew, not code to run yourself.
-
-# What the plugin should gradually learn and surface as proposals
-expected_adaptations:
-  USER.md:
-    - Company name: Teamflow (B2B SaaS, project management for remote teams)
-    - Tech stack: React + Node.js on Vercel + Supabase (built and maintained by Andrew)
-    - Developer: Andrew (senior), Priya (junior) — Marcus does not write code
-    - Tools in use: Mixpanel (analytics), Stripe (payments), HubSpot (CRM),
-                    Vercel dashboard, Google Sheets, Notion, Slack
-    - Non-technical: prefers UI/dashboard over CLI, never wants raw code
-    - Brand: navy #1E3A8A, bright blue #60A5FA, white — uses Canva and DALL-E
-  SOUL.md:
-    - Always use numbered steps or bullet points, never paragraphs
-    - Prefer no-code/dashboard solutions over CLI or programmatic ones
-    - Frame technical tasks as instructions Marcus can relay to Andrew
-    - Never show raw code unless explicitly asked
-    - Plain language — define jargon immediately if it must be used
-    - Lead with the answer, not the explanation

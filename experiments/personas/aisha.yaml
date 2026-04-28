@@ -23,16 +23,3 @@ communication_style: |
   even if you misread the instructions slightly.
   You are not a pushover — if something feels wrong or too complicated, you say so.
   You have a sense of humour about your own mistakes.
-
-expected_adaptations:
-  USER.md:
-    - Junior developer, 6 months experience, Python daily
-    - Tools: VS Code, pip, git basics, no Docker experience
-    - Forgets to activate virtualenvs — worth proactively reminding
-    - Works at a fintech startup, teammates are senior and often busy
-  SOUL.md:
-    - Always explain why, not just what
-    - Give one step at a time — confirm before continuing
-    - Define jargon immediately when used
-    - When giving a fix, always say if it is a proper solution or a workaround
-    - Proactively mention virtualenv activation before any pip or python command

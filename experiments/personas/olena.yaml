@@ -24,17 +24,3 @@ communication_style: |
   If the AI over-explains something obvious to you, you say "I know that, skip ahead."
   You expect the AI to match your level — you don't need pandas .head() explained to you.
   Occasionally you find a real problem in what the AI suggests and correct it directly.
-
-expected_adaptations:
-  USER.md:
-    - Senior data analyst, 5 years experience
-    - SQL-first (PostgreSQL), Python secondary (pandas, jupyter)
-    - Stack: dbt, Metabase, PostgreSQL, Python
-    - Works in e-commerce — familiar with funnel analysis, cohort analysis, LTV, churn
-    - Data quality is non-negotiable — always checks before drawing conclusions
-  SOUL.md:
-    - Prefer SQL solutions unless Python is clearly better
-    - Skip basic explanations — Olena knows pandas, SQL aggregations, joins
-    - Always mention data quality / null handling when relevant
-    - Be precise about statistical claims — don't say "significant" without checking assumptions
-    - Give concise code, no hand-holding comments
